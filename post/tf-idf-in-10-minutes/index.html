@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>What is TF-IDF? The 10 minute guide</title>
+  
+  <meta name="author" content=""/>
+  <meta name="generator" content="Hugo 0.19" />
+  
+
+  <link rel="alternate" href="http://michaelerasm.us/index.xml" type="application/rss+xml" title="The Blog of Michael Erasmus">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" integrity="sha384-wITovz90syo1dJWVh32uuETPVEtGigN07tkttEqPv+uR2SE/mbQcG7ATL28aI9H0" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="http://michaelerasm.us//css/main.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/pygment_highlights.css" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/highlight.min.css">
+
+  
+  
+ 
+  
+    <meta property="og:title" content="What is TF-IDF? The 10 minute guide" />
+  
+
+  
+    <meta property="og:description" content=" I recently started reading up a bit on tf-idf, which stands for term frequency-inverse document frequency. Tf-idf is a simple, but surprisingly powerful technique which can be used to figure out what …">
+  
+
+  <meta property="og:type" content="website" />
+
+  
+    <meta property="og:url" content="http://michaelerasm.us/post/tf-idf-in-10-minutes/" />
+    <link rel="canonical" href="http://michaelerasm.us/post/tf-idf-in-10-minutes/" />
+  
+
+  
+  
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@" />
+  <meta name="twitter:creator" content="@" />
+
+  
+    <meta name="twitter:title" content="What is TF-IDF? The 10 minute guide" />
+  
+
+  
+    <meta name="twitter:description" content=" I recently started reading up a bit on tf-idf, which stands for term frequency-inverse document frequency. Tf-idf is a simple, but surprisingly powerful technique which can be used to figure out what …">
+  
+
+   
+
+</head>
+
+
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://michaelerasm.us/">The Blog of Michael Erasmus</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div>
+
+    <div class="avatar-container">
+      <div class="avatar-img-border">
+        
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+    
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+        <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <div class="post-heading">
+          <h1>What is TF-IDF? The 10 minute guide</h1>
+            
+
+            
+              <span class="post-meta">Posted at 19:03:27 on Fri Mar 17 2017</span>
+            
+        </div>
+      </div>
+    </div>
+  </div>
+
+    </div>
+  </header>
+
+
+    <div class="container" role="main">
+      
+        <div class="container">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        
+
+<p>I recently started reading up a bit on <a href="/web/20160731164955/https://en.wikipedia.org/wiki/Tf%E2%80%93idf">tf-idf</a>, which stands for <em>term frequency-inverse document frequency</em>. Tf-idf is a simple, but surprisingly powerful technique which can be used to figure out what a document is &lsquo;about&rsquo;. It&rsquo;s often used in the fields of information retrieval and text mining.</p>
+
+<h3 id="documents">Documents?</h3>
+
+<p>First, let&rsquo;s just define what I mean with document. For our purposes, a document can be thought of all the words in a piece of text, broken down by how frequently each word appears in the text.</p>
+
+<p>Say for example, you had a very simple document such as this quote:</p></p>
+
+<blockquote>
+ <p>Just the fact that some geniuses were laughed at does not imply that all who are laughed at are geniuses. They laughed at Columbus, they laughed at Fulton, they laughed at the Wright brothers. But they also laughed at Bozo the Clown - Carl Sagan</p>
+</blockquote>
+
+<p>If we looked at the top frequency of words in the text we get this:</p>
+
+<table style="width:100%">  
+ <tr>
+   <td><b>Word</b></td>
+   <td><b>Frequency</b></td>
+  </th>
+  <tr>
+    <td>laughed</td>
+    <td>6</td>
+  </tr>
+ <tr>
+    <td>at</td>
+    <td>6</td>
+  </tr>
+  <tr>
+    <td>the</td>
+    <td>3</td>
+  </tr>
+  <tr>
+    <td>that</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>geniuses</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>are</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>wright</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td>bozo</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td>who</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td colspan=2 style='center'>...</td>
+  </tr>
+ </table>
+
+<p>This structure is also often referred to as a Bag of Words. Although we care about how many times a word appear in a document, we ignore the order in which words appear.</p>
+
+<h3 id="term-frequency">Term Frequency</h3>
+
+<p>Now let&rsquo;s think of a way to figure out what this text is about. What are the main themes? What would be great terms to use if I wanted to search for this document? Well a very simple way of course would just to get the highest frequency words, and declare those as &lsquo;important&rsquo;.</p>
+
+<p>The word &lsquo;laughed&rsquo; and &lsquo;at&rsquo; appears a lot, and seems to be quite representative of the text, but what about &lsquo;the&rsquo; and &lsquo;that&rsquo;?</p>
+
+<p>At the same time the words &lsquo;geniuses&rsquo; and &lsquo;wright&rsquo; appears less frequently, but seems to be really relevant as well.</p>
+
+<p>Without any more information, it&rsquo;s quite difficult to only use term frequency as measure of how important a word is to describe a document.</p>
+
+<h3 id="inverse-document-frequency">(Inverse) Document Frequency</h3>
+
+<p>But what if we had a whole set of documents to our disposal? This can also be called a <em>Corpus</em>.</p>
+
+<p>Using structure we can gleam from how frequently words appear in different documents within a corpus can give us the additional information about how common words are in general.</p>
+
+<p>Once we know how common or rare certain words are in general, we can weigh their importance in any specific document.</p>
+
+<p>So if we see a high frequency of words like &lsquo;the&rsquo; and &lsquo;that&rsquo; in a lot of documents, we can deduce that these are common words and thus consider them to be less important in any particular document. </p></p>
+
+<p>On the flip side, the words &lsquo;geniuses&rsquo;, &lsquo;wright&rsquo; and &lsquo;bozo&rsquo; will be more rare, and thus can better represent our document. This is called the document frequency, the number of documents in corpus that particular a word occurs in.</p>
+
+<p>Since we want rarer words to have a higher weight, we calculate the inverse of the document frequency. All of this is expressed quite simply as a ratio:</p>
+
+<p><code>number_of_document_in_corpus / term_document_frequency</code></p>
+
+<h3 id="putting-it-all-together">Putting it all together</h3>
+
+<p>Once we have the term frequency and inverse document frequency statistics for any given word, we can calculate it&rsquo;s tf-idf weight simply as product of the two stats.</p>
+
+<p><code>tf_idf = term_frequency * inverse_document_frequency</code></p>
+
+<p>If we wanted to grab the most important word in a particular document, we can simply calculate a tf-idf score for each word and use the top scores. And that&rsquo;s it, that&rsquo;s all you need to use tf-idf!</p>
+
+<h3 id="oh-and-just-one-more-thing-dampening">Oh, and just one more thing (dampening)</h3>
+
+<p>There is one minor detail I failed to mention, which is that both the term frequency and inverse document frequency is often scaled logarithmically.</p>
+
+<p>Why would we need to do that? Well let&rsquo;s say you have a document that contains the word &lsquo;cat&rsquo; twice. Using tf-idf you might be well find that the document is about cats. But let&rsquo;s say your corpus also contains a document in which the word &lsquo;cat&rsquo; appears 36 times.</p>
+
+<p>Both these documents might be about cats, but could we say the one is 18 times &lsquo;more&rsquo; about cats?</p>
+
+<p>If you think about it, term frequency isn&rsquo;t a linear indicator of how important a word is in a document. As the number of times a word appears in a document goes up, it&rsquo;s relative importance starts to flatten out.</p>
+
+<p>A good way to represent this is by using the log10 of the term frequency instead. Since the log of 1 is zero and the log of zero is infinity, we actually use</p>
+
+<p><code>log(tf) + 1</code></p>
+
+<p>We also use the log of the inverse document frequency for the same reason, since we don&rsquo;t want super rare terms to be weighted too highly.</p>
+
+<h3 id="can-you-show-me-some-code">Can you show me some code?</h3>
+
+<p>Yeah of course! Here is a quick and dirty implementation of tf-idf in python, using pandas. I&rsquo;m using a dataset that comes baked into scikit-learn. The <a href="/web/20160731164955/http://scikit-learn.org/stable/datasets/twenty_newsgroups.html"><code>fetch_20newsgroups</code></a> function will return a dataset of posts from 20 usenet newsgroups.</p>
+
+<p>For performance reasons, I&rsquo;m using using a small subset of the dataset.</p>
+
+<pre><code class="language-python">
+import os
+import math
+import re
+import pandas as pd
+from collections import Counter
+from sklearn.datasets import fetch_20newsgroups
+
+#get a subset of the dataset
+
+categories = [
+        'alt.atheism',
+        'talk.religion.misc',
+        'comp.graphics',
+        'sci.space',
+    ]
+docs_data = fetch_20newsgroups(subset='train', categories=categories,
+                                shuffle=True, random_state=42,
+                                remove=('headers', 'footers', 'quotes'))
+
+#build a pandas dataframe using the filename and data of each post
+docs =  pd.DataFrame({
+            'filename' : docs_data.filenames,
+            'data': docs_data.data
+})
+
+#grab the corpus size(we'll use this later for IDF)
+corpus_size = len(docs)
+
+#no let's do some basic cleaning up of the text, make everything lower case and strip out all non-letters
+docs['words'] = docs.data.apply(lambda doc: re.sub(&quot;[\W\d]&quot;, &quot; &quot;, doc.lower().strip()).split())
+
+#let's calculate the word frequencies for each document (Bag of words)
+docs['frequencies'] = docs.words.apply(lambda words: Counter(words))
+
+#cool, now we can calculate TF, the log+1 of the frequency of each word
+docs['log_frequencies'] = docs.frequencies.apply(lambda d: dict([(k,math.log(v) + 1) for k, v in d.iteritems()]))
+
+#now let's build up a lookup list of document frequencies
+#first we build a vocabulary for our corpus(set of unique words)
+corpus_vocab = set([word for words in docs.words for word in words])
+
+#now use the vocabulary to find the document frequency for each word
+df = lambda word: len(docs[docs.words.apply(lambda w: word in w)])
+corpus_vocab_dfs = dict([(word,math.log(corpus_size / df(word))) for word in corpus_vocab])
+
+#phew! no let's put it all together. let's calculate tf*idf for each term
+tfidf = lambda tfs: dict([(k,v * corpus_vocab_dfs[k]) for k, v  in tfs.iteritems()])
+docs['tfidf'] = docs.log_frequencies.apply(tfidf)
+
+#finally we can grab the top 5 weighted terms to get keywords for each document
+sorted(docs.tfidf[0], key=docs.tfidf[0].get, reverse=True)[0:5]
+docs['keywords'] = docs.tfidf.apply(lambda t: sorted(t, key=t.get, reverse=True)[0:5])
+</code></pre>
+
+<p><a href="https://gist.github.com/michael-erasmus/ad16c57cf48eb95a4b63">Gist</a></p>
+
+<p>The code is reasonably commented, so I hope its clear enough. Let me know if you had any questions.</p>
+
+<h3 id="and-that-s-a-wrap">And that&rsquo;s a wrap!</h3>
+
+<p>That&rsquo;s my short and hopefully clear explanation of tf-idf. The <a href="/web/20160731164955/https://en.wikipedia.org/wiki/Tf%E2%80%93idf">wikipedia page</a> has a lot more useful information and theory to dig into, if that kind of stuff tickles your fancy!</p>
+
+      </article>
+
+      <ul class="pager blog-pager">
+        
+          <li class="previous">
+            <a href="http://michaelerasm.us/post/a-redshift-udf-to-find-ab-test-significance/" data-toggle="tooltip" data-placement="top" title="A Redshift UDF to find AB test significance">&larr; Previous Post</a>
+          </li>
+        
+        
+      </ul>
+
+      
+
+    </div>
+  </div>
+</div>
+
+      
+    </div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+          &nbsp;&bull;&nbsp;
+          2017
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="http://michaelerasm.us/">The Blog of Michael Erasmus</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.19</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js" integrity="sha384-/y1Nn9+QQAipbNQWU65krzJralCnuOasHncUFXGkdwntGeSvQicrYkiUBwsgUqc1" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/contrib/auto-render.min.js" integrity="sha384-dq1/gEHSxPZQ7DdrM82ID4YVol9BYyU7GbWlIwnwyPzotpoc57wDw/guX8EaYGPx" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="http://michaelerasm.us//js/main.js"></script>
+<script src="http://michaelerasm.us//js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> renderMathInElement(document.body); </script>
+
+
+
+
+  </body>
+</html>

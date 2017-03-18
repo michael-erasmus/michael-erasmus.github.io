@@ -6,8 +6,199 @@
     <description>Recent content on The Blog of Michael Erasmus</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 28 Sep 2015 16:11:58 +0530</lastBuildDate>
+    <lastBuildDate>Fri, 17 Mar 2017 19:03:27 -0700</lastBuildDate>
     <atom:link href="http://michaelerasm.us/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>What is TF-IDF? The 10 minute guide</title>
+      <link>http://michaelerasm.us/post/tf-idf-in-10-minutes/</link>
+      <pubDate>Fri, 17 Mar 2017 19:03:27 -0700</pubDate>
+      
+      <guid>http://michaelerasm.us/post/tf-idf-in-10-minutes/</guid>
+      <description>
+
+&lt;p&gt;I recently started reading up a bit on &lt;a href=&#34;http://michaelerasm.us/web/20160731164955/https://en.wikipedia.org/wiki/Tf%E2%80%93idf&#34;&gt;tf-idf&lt;/a&gt;, which stands for &lt;em&gt;term frequency-inverse document frequency&lt;/em&gt;. Tf-idf is a simple, but surprisingly powerful technique which can be used to figure out what a document is &amp;lsquo;about&amp;rsquo;. It&amp;rsquo;s often used in the fields of information retrieval and text mining.&lt;/p&gt;
+
+&lt;h3 id=&#34;documents&#34;&gt;Documents?&lt;/h3&gt;
+
+&lt;p&gt;First, let&amp;rsquo;s just define what I mean with document. For our purposes, a document can be thought of all the words in a piece of text, broken down by how frequently each word appears in the text.&lt;/p&gt;
+
+&lt;p&gt;Say for example, you had a very simple document such as this quote:&lt;/p&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+ &lt;p&gt;Just the fact that some geniuses were laughed at does not imply that all who are laughed at are geniuses. They laughed at Columbus, they laughed at Fulton, they laughed at the Wright brothers. But they also laughed at Bozo the Clown - Carl Sagan&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;If we looked at the top frequency of words in the text we get this:&lt;/p&gt;
+
+&lt;table style=&#34;width:100%&#34;&gt;  
+ &lt;tr&gt;
+   &lt;td&gt;&lt;b&gt;Word&lt;/b&gt;&lt;/td&gt;
+   &lt;td&gt;&lt;b&gt;Frequency&lt;/b&gt;&lt;/td&gt;
+  &lt;/th&gt;
+  &lt;tr&gt;
+    &lt;td&gt;laughed&lt;/td&gt;
+    &lt;td&gt;6&lt;/td&gt;
+  &lt;/tr&gt;
+ &lt;tr&gt;
+    &lt;td&gt;at&lt;/td&gt;
+    &lt;td&gt;6&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;the&lt;/td&gt;
+    &lt;td&gt;3&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;that&lt;/td&gt;
+    &lt;td&gt;2&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;geniuses&lt;/td&gt;
+    &lt;td&gt;2&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;are&lt;/td&gt;
+    &lt;td&gt;2&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;wright&lt;/td&gt;
+    &lt;td&gt;1&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;bozo&lt;/td&gt;
+    &lt;td&gt;1&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;who&lt;/td&gt;
+    &lt;td&gt;1&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td colspan=2 style=&#39;center&#39;&gt;...&lt;/td&gt;
+  &lt;/tr&gt;
+ &lt;/table&gt;
+
+&lt;p&gt;This structure is also often referred to as a Bag of Words. Although we care about how many times a word appear in a document, we ignore the order in which words appear.&lt;/p&gt;
+
+&lt;h3 id=&#34;term-frequency&#34;&gt;Term Frequency&lt;/h3&gt;
+
+&lt;p&gt;Now let&amp;rsquo;s think of a way to figure out what this text is about. What are the main themes? What would be great terms to use if I wanted to search for this document? Well a very simple way of course would just to get the highest frequency words, and declare those as &amp;lsquo;important&amp;rsquo;.&lt;/p&gt;
+
+&lt;p&gt;The word &amp;lsquo;laughed&amp;rsquo; and &amp;lsquo;at&amp;rsquo; appears a lot, and seems to be quite representative of the text, but what about &amp;lsquo;the&amp;rsquo; and &amp;lsquo;that&amp;rsquo;?&lt;/p&gt;
+
+&lt;p&gt;At the same time the words &amp;lsquo;geniuses&amp;rsquo; and &amp;lsquo;wright&amp;rsquo; appears less frequently, but seems to be really relevant as well.&lt;/p&gt;
+
+&lt;p&gt;Without any more information, it&amp;rsquo;s quite difficult to only use term frequency as measure of how important a word is to describe a document.&lt;/p&gt;
+
+&lt;h3 id=&#34;inverse-document-frequency&#34;&gt;(Inverse) Document Frequency&lt;/h3&gt;
+
+&lt;p&gt;But what if we had a whole set of documents to our disposal? This can also be called a &lt;em&gt;Corpus&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Using structure we can gleam from how frequently words appear in different documents within a corpus can give us the additional information about how common words are in general.&lt;/p&gt;
+
+&lt;p&gt;Once we know how common or rare certain words are in general, we can weigh their importance in any specific document.&lt;/p&gt;
+
+&lt;p&gt;So if we see a high frequency of words like &amp;lsquo;the&amp;rsquo; and &amp;lsquo;that&amp;rsquo; in a lot of documents, we can deduce that these are common words and thus consider them to be less important in any particular document. &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;On the flip side, the words &amp;lsquo;geniuses&amp;rsquo;, &amp;lsquo;wright&amp;rsquo; and &amp;lsquo;bozo&amp;rsquo; will be more rare, and thus can better represent our document. This is called the document frequency, the number of documents in corpus that particular a word occurs in.&lt;/p&gt;
+
+&lt;p&gt;Since we want rarer words to have a higher weight, we calculate the inverse of the document frequency. All of this is expressed quite simply as a ratio:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;number_of_document_in_corpus / term_document_frequency&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;putting-it-all-together&#34;&gt;Putting it all together&lt;/h3&gt;
+
+&lt;p&gt;Once we have the term frequency and inverse document frequency statistics for any given word, we can calculate it&amp;rsquo;s tf-idf weight simply as product of the two stats.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;tf_idf = term_frequency * inverse_document_frequency&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;If we wanted to grab the most important word in a particular document, we can simply calculate a tf-idf score for each word and use the top scores. And that&amp;rsquo;s it, that&amp;rsquo;s all you need to use tf-idf!&lt;/p&gt;
+
+&lt;h3 id=&#34;oh-and-just-one-more-thing-dampening&#34;&gt;Oh, and just one more thing (dampening)&lt;/h3&gt;
+
+&lt;p&gt;There is one minor detail I failed to mention, which is that both the term frequency and inverse document frequency is often scaled logarithmically.&lt;/p&gt;
+
+&lt;p&gt;Why would we need to do that? Well let&amp;rsquo;s say you have a document that contains the word &amp;lsquo;cat&amp;rsquo; twice. Using tf-idf you might be well find that the document is about cats. But let&amp;rsquo;s say your corpus also contains a document in which the word &amp;lsquo;cat&amp;rsquo; appears 36 times.&lt;/p&gt;
+
+&lt;p&gt;Both these documents might be about cats, but could we say the one is 18 times &amp;lsquo;more&amp;rsquo; about cats?&lt;/p&gt;
+
+&lt;p&gt;If you think about it, term frequency isn&amp;rsquo;t a linear indicator of how important a word is in a document. As the number of times a word appears in a document goes up, it&amp;rsquo;s relative importance starts to flatten out.&lt;/p&gt;
+
+&lt;p&gt;A good way to represent this is by using the log10 of the term frequency instead. Since the log of 1 is zero and the log of zero is infinity, we actually use&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;log(tf) + 1&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;We also use the log of the inverse document frequency for the same reason, since we don&amp;rsquo;t want super rare terms to be weighted too highly.&lt;/p&gt;
+
+&lt;h3 id=&#34;can-you-show-me-some-code&#34;&gt;Can you show me some code?&lt;/h3&gt;
+
+&lt;p&gt;Yeah of course! Here is a quick and dirty implementation of tf-idf in python, using pandas. I&amp;rsquo;m using a dataset that comes baked into scikit-learn. The &lt;a href=&#34;http://michaelerasm.us/web/20160731164955/http://scikit-learn.org/stable/datasets/twenty_newsgroups.html&#34;&gt;&lt;code&gt;fetch_20newsgroups&lt;/code&gt;&lt;/a&gt; function will return a dataset of posts from 20 usenet newsgroups.&lt;/p&gt;
+
+&lt;p&gt;For performance reasons, I&amp;rsquo;m using using a small subset of the dataset.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+import os
+import math
+import re
+import pandas as pd
+from collections import Counter
+from sklearn.datasets import fetch_20newsgroups
+
+#get a subset of the dataset
+
+categories = [
+        &#39;alt.atheism&#39;,
+        &#39;talk.religion.misc&#39;,
+        &#39;comp.graphics&#39;,
+        &#39;sci.space&#39;,
+    ]
+docs_data = fetch_20newsgroups(subset=&#39;train&#39;, categories=categories,
+                                shuffle=True, random_state=42,
+                                remove=(&#39;headers&#39;, &#39;footers&#39;, &#39;quotes&#39;))
+
+#build a pandas dataframe using the filename and data of each post
+docs =  pd.DataFrame({
+            &#39;filename&#39; : docs_data.filenames,
+            &#39;data&#39;: docs_data.data
+})
+
+#grab the corpus size(we&#39;ll use this later for IDF)
+corpus_size = len(docs)
+
+#no let&#39;s do some basic cleaning up of the text, make everything lower case and strip out all non-letters
+docs[&#39;words&#39;] = docs.data.apply(lambda doc: re.sub(&amp;quot;[\W\d]&amp;quot;, &amp;quot; &amp;quot;, doc.lower().strip()).split())
+
+#let&#39;s calculate the word frequencies for each document (Bag of words)
+docs[&#39;frequencies&#39;] = docs.words.apply(lambda words: Counter(words))
+
+#cool, now we can calculate TF, the log+1 of the frequency of each word
+docs[&#39;log_frequencies&#39;] = docs.frequencies.apply(lambda d: dict([(k,math.log(v) + 1) for k, v in d.iteritems()]))
+
+#now let&#39;s build up a lookup list of document frequencies
+#first we build a vocabulary for our corpus(set of unique words)
+corpus_vocab = set([word for words in docs.words for word in words])
+
+#now use the vocabulary to find the document frequency for each word
+df = lambda word: len(docs[docs.words.apply(lambda w: word in w)])
+corpus_vocab_dfs = dict([(word,math.log(corpus_size / df(word))) for word in corpus_vocab])
+
+#phew! no let&#39;s put it all together. let&#39;s calculate tf*idf for each term
+tfidf = lambda tfs: dict([(k,v * corpus_vocab_dfs[k]) for k, v  in tfs.iteritems()])
+docs[&#39;tfidf&#39;] = docs.log_frequencies.apply(tfidf)
+
+#finally we can grab the top 5 weighted terms to get keywords for each document
+sorted(docs.tfidf[0], key=docs.tfidf[0].get, reverse=True)[0:5]
+docs[&#39;keywords&#39;] = docs.tfidf.apply(lambda t: sorted(t, key=t.get, reverse=True)[0:5])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gist.github.com/michael-erasmus/ad16c57cf48eb95a4b63&#34;&gt;Gist&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The code is reasonably commented, so I hope its clear enough. Let me know if you had any questions.&lt;/p&gt;
+
+&lt;h3 id=&#34;and-that-s-a-wrap&#34;&gt;And that&amp;rsquo;s a wrap!&lt;/h3&gt;
+
+&lt;p&gt;That&amp;rsquo;s my short and hopefully clear explanation of tf-idf. The &lt;a href=&#34;http://michaelerasm.us/web/20160731164955/https://en.wikipedia.org/wiki/Tf%E2%80%93idf&#34;&gt;wikipedia page&lt;/a&gt; has a lot more useful information and theory to dig into, if that kind of stuff tickles your fancy!&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>A Redshift UDF to find AB test significance</title>
