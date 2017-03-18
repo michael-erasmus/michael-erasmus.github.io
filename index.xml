@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The Blog of Michael Erasmus</title>
+    <link>http://michaelerasm.us/index.xml</link>
+    <description>Recent content on The Blog of Michael Erasmus</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 28 Sep 2015 16:11:58 +0530</lastBuildDate>
+    <atom:link href="http://michaelerasm.us/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>A Redshift UDF to find AB test significance</title>
+      <link>http://michaelerasm.us/post/a-redshift-udf-to-find-ab-test-significance/</link>
+      <pubDate>Mon, 28 Sep 2015 16:11:58 +0530</pubDate>
+      
+      <guid>http://michaelerasm.us/post/a-redshift-udf-to-find-ab-test-significance/</guid>
+      <description>&lt;p&gt;I use Amazon&amp;rsquo;s Redshift every day. It&amp;rsquo;s an amazing database for data warehousing and analytics and allows you analyze huge datasets in a blazingly efficient manner using SQL.&lt;/p&gt;
+
+&lt;p&gt;The reason why Redshift is so fast for analysis work is that unlike many other SQL databases, it uses &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://en.wikipedia.org/wiki/Column-oriented_DBMS&#34;&gt;columnar storage&lt;/a&gt; and is highly optimized for distributing workloads across a cluster of instances.&lt;/p&gt;
+
+&lt;p&gt;Redshift is based on PostgreSQL 8.0.2., so it&amp;rsquo;s pretty familiar to anyone who&amp;rsquo;s used Postres or any other mainstream SQL dialect before. Though there is one feature of Postgres that Redshift didn&amp;rsquo;t have until very recently, &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/http://www.postgresql.org/docs/8.3/static/xfunc.html&#34;&gt;User Defined Functions&lt;/a&gt; or UDFs for short.&lt;/p&gt;
+
+&lt;p&gt;UDF&amp;rsquo;s are really great for encapsulating common logic and also let&amp;rsquo;s you use a more expressive language to implement logic in when SQL isn&amp;rsquo;t quite cutting it.&lt;/p&gt;
+
+&lt;p&gt;Amazon did however very recently announce an awesome new feature, &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://aws.amazon.com/blogs/aws/user-defined-functions-for-amazon-redshift/&#34;&gt;UDF&amp;rsquo;s that can be implemented in Python&lt;/a&gt;. Once you create an embedded function  in Redshift you can use it in any SQL query in the same manner as any native built in function, and Redshift will take care of the input/output bridge between Python and SQL and running your code in a distributed manner on your cluster.&lt;/p&gt;
+
+&lt;p&gt;There has been some really great posts about Python UDFs already, by &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://blogs.aws.amazon.com/bigdata/post/Tx1IHV1G67CY53T/Introduction-to-Python-UDFs-in-Amazon-Redshift&#34;&gt;Amazon&lt;/a&gt;, &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/http://www.looker.com/blog/amazon-redshift-user-defined-functions&#34;&gt;Looker&lt;/a&gt; and &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://www.periscope.io/blog/redshift-user-defined-functions-python.html&#34;&gt;Periscope&lt;/a&gt; and I highly recommend having a look at those if you&amp;rsquo;re curious.&lt;/p&gt;
+
+&lt;p&gt;Periscope has also open sourced &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://github.com/PeriscopeData/redshift-udfs&#34;&gt;a suite of useful UDF&amp;rsquo;s&lt;/a&gt; you can readily use in your own cluster, that comes with a UDF harness you can use to manage and test UDFs&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve been itching to try out writing a UDF to learn more, and with Periscope&amp;rsquo;s harness this turned out to be pretty straightforward.&lt;/p&gt;
+
+&lt;p&gt;At Buffer we are constantly running experiments, mostly in the form of AB tests. All of the tracking data around the experiments live in Redshift, and with Looker it&amp;rsquo;s easy for us to model, filter and aggregate the data using LookML and SQL.&lt;/p&gt;
+
+&lt;p&gt;One crucial requirement for AB testing to check &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://en.wikipedia.org/wiki/Statistical_significance&#34;&gt;the significance&lt;/a&gt; of results.&lt;/p&gt;
+
+&lt;p&gt;Usually an experiment will have a control and experiment group and for each group we&amp;rsquo;ll have a number of conversions. What we&amp;rsquo;re looking for is a statistical significant difference in the conversions for either group.&lt;/p&gt;
+
+&lt;p&gt;There are a number of free online tools that let you easily work out how significant your results are, but I thought it would be great for us to be able to do this right in the database and in Looker.&lt;/p&gt;
+
+&lt;p&gt;One of the cool things about the new Python UDF&amp;rsquo;s in Redshift is that they already ship with a bunch of libraries that are often used in data science and analytics work, such as numpy, scipy and pandas.&lt;/p&gt;
+
+&lt;p&gt;All this meant writing a UDF to test the null-hypothesis using the &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://en.wikipedia.org/wiki/P-value&#34;&gt;p-value&lt;/a&gt; was pretty easy to write.&lt;/p&gt;
+
+&lt;p&gt;Here is the result:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;create or replace function experiment_result_p_value(control_size float, control_conversion float, experiment_size float, experiment_conversion float)
+returns float
+
+stable
+as $$
+from scipy.stats import chi2_contingency
+from numpy import array
+observed = array([
+  [control_size - control_conversion, control_conversion],
+     [experiment_size - experiment_conversion, experiment_conversion]
+])
+result = chi2_contingency(observed, correction=True)
+chisq, p = result[:2]
+return p
+$$ language plpythonu;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This function uses scipy to most of the heavy lifting. All you need to pass in is the size of the control and experiment groups as well as their corresponding conversion numbers and the function will return a &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://en.wikipedia.org/wiki/P-value&#34;&gt;p-value&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;If the p-value is less than 0.05 you can reject the null-hypothesis and say there is a significant difference between the conversion rates of the the two groups.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
