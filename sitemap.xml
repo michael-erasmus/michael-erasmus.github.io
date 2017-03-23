@@ -12,6 +12,15 @@
   </url>
   
   <url>
+    <loc>http://michaelerasm.us/page/about/</loc>
+  </url>
+  
+  <url>
+    <loc>http://michaelerasm.us/page/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://michaelerasm.us/post/</loc>
     <lastmod>2017-03-17T19:03:27-07:00</lastmod>
     <priority>0</priority>

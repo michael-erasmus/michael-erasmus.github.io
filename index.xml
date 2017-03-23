@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>The Blog of Michael Erasmus</title>
+    <title>michaelerasm.us</title>
     <link>http://michaelerasm.us/index.xml</link>
-    <description>Recent content on The Blog of Michael Erasmus</description>
+    <description>Recent content on michaelerasm.us</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 17 Mar 2017 19:03:27 -0700</lastBuildDate>
@@ -256,6 +256,37 @@ $$ language plpythonu;
 &lt;p&gt;This function uses scipy to most of the heavy lifting. All you need to pass in is the size of the control and experiment groups as well as their corresponding conversion numbers and the function will return a &lt;a href=&#34;http://michaelerasm.us/web/20161021061459/https://en.wikipedia.org/wiki/P-value&#34;&gt;p-value&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;If the p-value is less than 0.05 you can reject the null-hypothesis and say there is a significant difference between the conversion rates of the the two groups.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>About Me</title>
+      <link>http://michaelerasm.us/page/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://michaelerasm.us/page/about/</guid>
+      <description>&lt;p&gt;My name is Michael Erasmus.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://michaelerasm.us/img/Headshot.jpg&#34; alt=&#34;jpg&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;m the Data Analytics Lead at &lt;a href=&#34;https://buffer.com&#34;&gt;Buffer&lt;/a&gt;. It&amp;rsquo;s great product and a awesome company.&lt;/p&gt;
+
+&lt;p&gt;The list of things that make me happy&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Work&lt;/li&gt;
+&lt;li&gt;Reading and learning for the sake of it&lt;/li&gt;
+&lt;li&gt;Writing&lt;/li&gt;
+&lt;li&gt;Traveling&lt;/li&gt;
+&lt;li&gt;Surfing&lt;/li&gt;
+&lt;li&gt;Cooking&lt;/li&gt;
+&lt;li&gt;Playing Ukulele&lt;/li&gt;
+&lt;li&gt;My Family&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I write about adventures in Data Science &amp;amp; Engineering, Machine Learning, SQL, Python and other things!&lt;/p&gt;
+
+&lt;p&gt;I live in beautiful Santa Cruz, CA&lt;/p&gt;
 </description>
     </item>
     
