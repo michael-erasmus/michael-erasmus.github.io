@@ -6,8 +6,367 @@
     <description>Recent content on michaelerasm.us</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 17 Mar 2017 19:03:27 -0700</lastBuildDate>
+    <lastBuildDate>Thu, 23 Mar 2017 16:50:00 -0700</lastBuildDate>
     <atom:link href="http://michaelerasm.us/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>A machine that generates money with pandas-datareader and Prophet</title>
+      <link>http://michaelerasm.us/post/money-machine/</link>
+      <pubDate>Thu, 23 Mar 2017 16:50:00 -0700</pubDate>
+      
+      <guid>http://michaelerasm.us/post/money-machine/</guid>
+      <description>
+
+&lt;h3 id=&#34;what-is-this&#34;&gt;What is this?&lt;/h3&gt;
+
+&lt;p&gt;This isn&amp;rsquo;t really a money machine, I&amp;rsquo;m just kidding about that, sorry.&lt;/p&gt;
+
+&lt;p&gt;This is just a quick exploration of two awesome Python packages that I wanted to play with for a while&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://facebookincubator.github.io/prophet&#34;&gt;&lt;code&gt;Prophet&lt;/code&gt;&lt;/a&gt; for time series forecasting&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://pandas-datareader.readthedocs.io/en/latest/&#34;&gt;&lt;code&gt;pandas_datareader&lt;/code&gt;&lt;/a&gt; for grabbing historic stock price data&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Prophet seems like an awesome project by Facebook to make state-of-the-art time series forecasting really easy and simple. I&amp;rsquo;ve been hoping to give it a try for a while.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve also been itching to play aound with pandas-datareader, which makes it really grab data from multiple &lt;a href=&#34;https://pandas-datareader.readthedocs.io/en/latest/remote_data.html&#34;&gt;remote datasources&lt;/a&gt;, including historic stock prices from &lt;a href=&#34;https://pandas-datareader.readthedocs.io/en/latest/remote_data.html#remote-data-yahoo&#34;&gt;Yahoo! Finance&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;I decided to see how Prophet does at forecasting future stock prices based on historic data. Now, before you scold me about the fact that &lt;a href=&#34;https://en.wikipedia.org/wiki/Random_walk_hypothesis&#34;&gt;what I&amp;rsquo;m doing is silly&lt;/a&gt;, I know, you can&amp;rsquo;t really use this to predict stock prices, but time series forecasting can be useful for many other things.&lt;/p&gt;
+
+&lt;p&gt;Plus it never hurts to prove well known hypothesis to yourself, no matter how much it might seem like common knowledge.&lt;/p&gt;
+
+&lt;p&gt;So I don&amp;rsquo;t really expect to become a millionaire quite yet, but it&amp;rsquo;s a fun little project to learn more about these awesome packages.&lt;/p&gt;
+
+&lt;p&gt;So let&amp;rsquo;s get started!&lt;/p&gt;
+
+&lt;h3 id=&#34;enviroment&#34;&gt;Enviroment&lt;/h3&gt;
+
+&lt;p&gt;Docker, docker-compose and Jupyter is my preferred way of setting up a reproducible enviroment for analysis.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&#34;https://github.com/michael-erasmus/money-machine/blob/master/Analysis.ipynb&#34;&gt;notebook&lt;/a&gt; for this analysis runs with &lt;a href=&#34;https://github.com/michael-erasmus/money-machine/blob/master/Dockerfile&#34;&gt;Dockerfile&lt;/a&gt; I set up using Jupyter&amp;rsquo;s &lt;a href=&#34;https://github.com/jupyter/docker-stacks/tree/master/datascience-notebook&#34;&gt;opinionated docker image&lt;/a&gt;, along with some tweaks to install the two custom packages.&lt;/p&gt;
+
+&lt;p&gt;Once I got everything up and running, I could &lt;a href=&#34;https://github.com/michael-erasmus/money-machine/blob/master/README.md&#34;&gt;fire up a Notebook&lt;/a&gt; and get cracking.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#The usual suspects
+import datetime
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+#Plus some new interesting characters
+from fbprophet import Prophet
+import pandas_datareader.data as web
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;our-data-source&#34;&gt;Our data source&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;pandas_datareader&lt;/code&gt; makes it incredibly easy to get historic stock market data&lt;/p&gt;
+
+&lt;p&gt;For today we&amp;rsquo;ll just get the daily closing prices of the S&amp;amp;P 500 (SPY)&lt;/p&gt;
+
+&lt;p&gt;We&amp;rsquo;ll train on data from the start of 2000 to 2017-03-14
+We&amp;rsquo;ll use the last week&amp;rsquo;s data as a holdout set to evaluate our model (up until 2017-03-21)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;start = datetime.datetime(2000, 1,1)
+end = datetime.datetime(2017, 3, 21)
+
+train = web.DataReader(&amp;quot;SPY&amp;quot;, &#39;yahoo&#39;, start, end)
+compare = train.copy()
+train = train[&#39;2000-01-03&#39;: &#39;2017-03-14&#39;]
+train.head()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div&gt;
+&lt;table border=&#34;1&#34; class=&#34;dataframe&#34;&gt;
+  &lt;thead&gt;
+    &lt;tr style=&#34;text-align: right;&#34;&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;Open&lt;/th&gt;
+      &lt;th&gt;High&lt;/th&gt;
+      &lt;th&gt;Low&lt;/th&gt;
+      &lt;th&gt;Close&lt;/th&gt;
+      &lt;th&gt;Volume&lt;/th&gt;
+      &lt;th&gt;Adj Close&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Date&lt;/th&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;th&gt;2000-01-03&lt;/th&gt;
+      &lt;td&gt;148.250000&lt;/td&gt;
+      &lt;td&gt;148.250000&lt;/td&gt;
+      &lt;td&gt;143.875000&lt;/td&gt;
+      &lt;td&gt;145.4375&lt;/td&gt;
+      &lt;td&gt;8164300&lt;/td&gt;
+      &lt;td&gt;105.366938&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;2000-01-04&lt;/th&gt;
+      &lt;td&gt;143.531204&lt;/td&gt;
+      &lt;td&gt;144.062500&lt;/td&gt;
+      &lt;td&gt;139.640594&lt;/td&gt;
+      &lt;td&gt;139.7500&lt;/td&gt;
+      &lt;td&gt;8089800&lt;/td&gt;
+      &lt;td&gt;101.246443&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;2000-01-05&lt;/th&gt;
+      &lt;td&gt;139.937500&lt;/td&gt;
+      &lt;td&gt;141.531204&lt;/td&gt;
+      &lt;td&gt;137.250000&lt;/td&gt;
+      &lt;td&gt;140.0000&lt;/td&gt;
+      &lt;td&gt;12177900&lt;/td&gt;
+      &lt;td&gt;101.427563&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;2000-01-06&lt;/th&gt;
+      &lt;td&gt;139.625000&lt;/td&gt;
+      &lt;td&gt;141.500000&lt;/td&gt;
+      &lt;td&gt;137.750000&lt;/td&gt;
+      &lt;td&gt;137.7500&lt;/td&gt;
+      &lt;td&gt;6227200&lt;/td&gt;
+      &lt;td&gt;99.797478&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;2000-01-07&lt;/th&gt;
+      &lt;td&gt;140.312500&lt;/td&gt;
+      &lt;td&gt;145.750000&lt;/td&gt;
+      &lt;td&gt;140.062500&lt;/td&gt;
+      &lt;td&gt;145.7500&lt;/td&gt;
+      &lt;td&gt;8066500&lt;/td&gt;
+      &lt;td&gt;105.593338&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&#34;can-we-forecast-future-prices&#34;&gt;Can we forecast future prices?&lt;/h3&gt;
+
+&lt;p&gt;This is where we get to play with Prophet. First we&amp;rsquo;ll prepare our dataset in a way that Prophet likes it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;df = pd.DataFrame({&#39;ds&#39;: train.index, &#39;y&#39;: train[&#39;Adj Close&#39;]}).reset_index()
+
+df = df.drop(&#39;Date&#39;, axis=1)
+df.head()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div&gt;
+&lt;table border=&#34;1&#34; class=&#34;dataframe&#34;&gt;
+  &lt;thead&gt;
+    &lt;tr style=&#34;text-align: right;&#34;&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;ds&lt;/th&gt;
+      &lt;th&gt;y&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;th&gt;0&lt;/th&gt;
+      &lt;td&gt;2000-01-03&lt;/td&gt;
+      &lt;td&gt;105.366938&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;1&lt;/th&gt;
+      &lt;td&gt;2000-01-04&lt;/td&gt;
+      &lt;td&gt;101.246443&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;2&lt;/th&gt;
+      &lt;td&gt;2000-01-05&lt;/td&gt;
+      &lt;td&gt;101.427563&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;3&lt;/th&gt;
+      &lt;td&gt;2000-01-06&lt;/td&gt;
+      &lt;td&gt;99.797478&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;4&lt;/th&gt;
+      &lt;td&gt;2000-01-07&lt;/td&gt;
+      &lt;td&gt;105.593338&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Now we can train our model. Since we don&amp;rsquo;t expect stock prices to really follow a weekly seasonality we&amp;rsquo;ll switch that off.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;m = Prophet(weekly_seasonality=False)
+m.fit(df);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To be able to make forecasts on future dates we can use a handy helper method to generate our expected input&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;future = m.make_future_dataframe(periods=365)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Finally we can make our prediction, using probably the coolest line of code I&amp;rsquo;ve ever written&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;forecast = m.predict(future)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;let-s-see-how-that-did&#34;&gt;Let&amp;rsquo;s see how that did!&lt;/h3&gt;
+
+&lt;p&gt;We can use our &lt;code&gt;compare&lt;/code&gt; dataframe from earlier to see how our forecasted value for yesterday&amp;rsquo;s price compares to the actual price. We&amp;rsquo;ll also see what our model thinks the price would be in a year from now.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;def evaluate(forecasted, compare):
+    forecasted = forecast.set_index(&#39;ds&#39;).loc[&#39;2017-3-21&#39;][[&#39;yhat&#39;, &#39;yhat_lower&#39;, &#39;yhat_upper&#39;]]
+    real = compare.loc[&#39;2017-03-21&#39;][&#39;Adj Close&#39;]
+    print(&amp;quot;Yesterday&#39;s Forecast:&amp;quot; )
+    print(&amp;quot;{0:.2f} lower: {1:.2f}, upper: {2:.2f}, &amp;quot;.format(forecasted[&#39;yhat&#39;], forecasted[&#39;yhat_lower&#39;], forecasted[&#39;yhat_upper&#39;]))
+    print(&amp;quot;\nReal:&amp;quot; )
+    print(real)
+
+    print(&#39;\nNext year&#39;&#39;s Forecast:&#39;)
+
+    return forecast.tail(1)[[&#39;ds&#39;,&#39;yhat&#39;, &#39;yhat_lower&#39;, &#39;yhat_upper&#39;]]
+
+evaluate(forecasted, compare)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;Yesterday&#39;s Forecast:
+225.36 lower: 217.63, upper: 233.19,
+
+Real:
+233.729996
+
+Next years Forecast:
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div&gt;
+&lt;table border=&#34;1&#34; class=&#34;dataframe&#34;&gt;
+  &lt;thead&gt;
+    &lt;tr style=&#34;text-align: right;&#34;&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;ds&lt;/th&gt;
+      &lt;th&gt;yhat&lt;/th&gt;
+      &lt;th&gt;yhat_lower&lt;/th&gt;
+      &lt;th&gt;yhat_upper&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;th&gt;4690&lt;/th&gt;
+      &lt;td&gt;2018-03-14&lt;/td&gt;
+      &lt;td&gt;242.348516&lt;/td&gt;
+      &lt;td&gt;232.2096&lt;/td&gt;
+      &lt;td&gt;252.518225&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Hmm, seems to be underestimating the actual price by quite a bit, however we&amp;rsquo;re still within Prophet&amp;rsquo;s 80% confidence interval (well almost).&lt;/p&gt;
+
+&lt;p&gt;Did I mention this isn&amp;rsquo;t acually a valid technique for making investment decisions?&lt;/p&gt;
+
+&lt;p&gt;That being said, let&amp;rsquo;s plot our performance, which again is made pretty easy by Prophet.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;p = m.plot(forecast)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://michaelerasm.us/img/money-machine-1.png&#34; alt=&#34;png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ok, so it seems like it&amp;rsquo;s doing pretty well modeling the trend in historic data, but it does seem to miss the recent rise in prices. One thing we could try is to force the model to fit the historic trend more or less closely, or as the Prophet documentation puts it, making the model more or less flexible.&lt;/p&gt;
+
+&lt;p&gt;To do this, we can use the tweak the &lt;code&gt;changepoint_prior_scale&lt;/code&gt; parameter (I&amp;rsquo;ll chat more on changepoints a little later on). The best value I&amp;rsquo;ve found for this parameter was &lt;code&gt;0.01&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;m = Prophet(weekly_seasonality=False, changepoint_prior_scale=0.01)
+m.fit(df)
+future = m.make_future_dataframe(periods=365)
+forecast = m.predict(future)
+evaluate(forecasted, compare)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;Yesterday&#39;s Forecast:
+225.36 lower: 217.34, upper: 233.33,
+
+Real:
+233.729996
+
+Next years Forecast:
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div&gt;
+&lt;table border=&#34;1&#34; class=&#34;dataframe&#34;&gt;
+  &lt;thead&gt;
+    &lt;tr style=&#34;text-align: right;&#34;&gt;
+      &lt;th&gt;&lt;/th&gt;
+      &lt;th&gt;ds&lt;/th&gt;
+      &lt;th&gt;yhat&lt;/th&gt;
+      &lt;th&gt;yhat_lower&lt;/th&gt;
+      &lt;th&gt;yhat_upper&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;th&gt;4690&lt;/th&gt;
+      &lt;td&gt;2018-03-14&lt;/td&gt;
+      &lt;td&gt;242.348516&lt;/td&gt;
+      &lt;td&gt;233.238948&lt;/td&gt;
+      &lt;td&gt;252.18966&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+
+&lt;p&gt;This makes our model overfit the data a bit more, which gets us a little closer to our real price, but we&amp;rsquo;re still not quite there yet, and our confidence intervals is also undereporting.&lt;/p&gt;
+
+&lt;p&gt;Seriously, don&amp;rsquo;t use this to invest real money, ok?&lt;/p&gt;
+
+&lt;h3 id=&#34;ok-so-we-didn-t-do-too-great-what-can-we-learn&#34;&gt;Ok, so we didn&amp;rsquo;t do too great, what can we learn?&lt;/h3&gt;
+
+&lt;p&gt;Another really nice thing about Prophet is that it&amp;rsquo;s really easy to plot the components of your forecasts (trend, yearly and/or weekly seasonality). Often this is a pretty useful tool for analysis by itself.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;p = m.plot_components(forecast)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://michaelerasm.us/img/money-machine-2.png&#34; alt=&#34;png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;From the top chart we can clearly see that we&amp;rsquo;ve had one of the &lt;a href=&#34;http://fortune.com/2017/03/09/stock-market-bull-market-longest/&#34;&gt;longest bull runs in history&lt;/a&gt;, which is pretty crazy, and our model thinks things can only go up from here. This is because of one of the fundamental underpinnings of time series forecasting.&lt;/p&gt;
+
+&lt;p&gt;The market, like other time series, will have points where the general trend changes drastically. These are called &lt;a href=&#34;https://en.wikipedia.org/wiki/Change_detection&#34;&gt;change points&lt;/a&gt; and a good forecasting algorithm needs to detect change points to be able to model the trend in the data. Change points are not caused by general cycles in the data either (seasonality), which can be predicted with more accuracy.&lt;/p&gt;
+
+&lt;p&gt;In fact, the one thing that any forecasting algorithm cannot predict is when the next change point will be, and how what effect that will have on the trend. This is also the flaw of my money machine. The market is a &lt;a href=&#34;https://en.wikipedia.org/wiki/Random_walk_hypothesis&#34;&gt;random walk&lt;/a&gt;, and even though we know everything about historic price trends, we can&amp;rsquo;t know when trends change.&lt;/p&gt;
+
+&lt;p&gt;What&amp;rsquo;s really interesting though is looking at yearly seasonality plot. From this plot it does seem like there is a strong seasonality in growth rates of stock prices throughout the year. We see a peak around May 1st, a decline up until late October, after which prices seem to trend up again.&lt;/p&gt;
+
+&lt;p&gt;This is a well known trading adage to &lt;a href=&#34;https://en.wikipedia.org/wiki/Sell_in_May&#34;&gt;Sell in May and go away&lt;/a&gt;, but looking at the data, it seems to hold up quite well and might just be a good trading strategy. So maybe I have just a built a Money Machine after all!&lt;/p&gt;
+
+&lt;p&gt;Then again, I&amp;rsquo;m sure if it was that simple we would have many more self made millionaires in the stock market. From &lt;a href=&#34;http://www.investopedia.com/terms/s/sell-in-may-and-go-away.asp#ixzz4c79c6mNF&#34;&gt;Investopedia&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;There are limitations to implementing this strategy in practice, such as added transaction costs and tax implications of the rotation in and out of equities. Another drawback is that market timing and seasonality strategies do not always work out, and the actual results may be very different from the theoretical ones.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;So please don&amp;rsquo;t bet the farm quite yet!&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;This was a fun little test of Prophet and pandas_datareader.&lt;/p&gt;
+
+&lt;p&gt;pandas_datareader makes the normally tedious task of finding, downloading, reading and transforming finance data into a dataframe incredibly easy.&lt;/p&gt;
+
+&lt;p&gt;Prophet makes time series forecasting super simple, and it works with Python and R! It feels like a great tool in my analytics toolbox and I&amp;rsquo;ve just scratched the surface of what it can do&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://facebookincubator.github.io/prophet/docs/forecasting_growth.html&#34;&gt;Logistic growth modelling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://facebookincubator.github.io/prophet/docs/trend_changepoints.html&#34;&gt;Controlling changepoint detection and confidence&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://facebookincubator.github.io/prophet/docs/holiday_effects.html&#34;&gt;Specifying holidays to control for holiday effects&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://facebookincubator.github.io/prophet/docs/uncertainty_intervals.html&#34;&gt;Modelling uncertainty&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://facebookincubator.github.io/prophet/docs/outliers.html&#34;&gt;Dealing with outliers&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     
     <item>
       <title>What is TF-IDF? The 10 minute guide</title>

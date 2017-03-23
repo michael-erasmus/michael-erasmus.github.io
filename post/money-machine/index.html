@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>A machine that generates money with pandas-datareader and Prophet</title>
+  
+  <meta name="author" content="Michael Erasmus"/>
+  <meta name="generator" content="Hugo 0.19" />
+  
+
+  <link rel="alternate" href="http://michaelerasm.us/index.xml" type="application/rss+xml" title="michaelerasm.us">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" integrity="sha384-wITovz90syo1dJWVh32uuETPVEtGigN07tkttEqPv+uR2SE/mbQcG7ATL28aI9H0" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="http://michaelerasm.us//css/main.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/pygment_highlights.css" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/highlight.min.css">
+
+  
+  
+ 
+  
+    <meta property="og:title" content="A machine that generates money with pandas-datareader and Prophet" />
+  
+
+  
+    <meta property="og:description" content=" What is this? This isn&amp;amp;rsquo;t really a money machine, I&amp;amp;rsquo;m just kidding about that, sorry.
+This is just a quick exploration of two awesome Python packages that I wanted to play with for …">
+  
+
+  <meta property="og:type" content="website" />
+
+  
+    <meta property="og:url" content="http://michaelerasm.us/post/money-machine/" />
+    <link rel="canonical" href="http://michaelerasm.us/post/money-machine/" />
+  
+
+  
+  
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@michael_erasmus" />
+  <meta name="twitter:creator" content="@michael_erasmus" />
+
+  
+    <meta name="twitter:title" content="A machine that generates money with pandas-datareader and Prophet" />
+  
+
+  
+    <meta name="twitter:description" content=" What is this? This isn&amp;amp;rsquo;t really a money machine, I&amp;amp;rsquo;m just kidding about that, sorry.
+This is just a quick exploration of two awesome Python packages that I wanted to play with for …">
+  
+
+   
+
+</head>
+
+
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://michaelerasm.us/">michaelerasm.us</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Blog" href="/">Blog</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="About" href="/page/about/">About</a>
+            </li>
+          
+        
+      </ul>
+    </div>
+
+    <div class="avatar-container">
+      <div class="avatar-img-border">
+        
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+    
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+        <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <div class="post-heading">
+          <h1>A machine that generates money with pandas-datareader and Prophet</h1>
+            
+
+            
+              <span class="post-meta">Posted on 16:50:00 on Thu Mar 23 2017</span>
+            
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </header>
+
+
+    <div class="container" role="main">
+      
+        <div class="container">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        
+
+<h3 id="what-is-this">What is this?</h3>
+
+<p>This isn&rsquo;t really a money machine, I&rsquo;m just kidding about that, sorry.</p>
+
+<p>This is just a quick exploration of two awesome Python packages that I wanted to play with for a while</p>
+
+<ul>
+<li><a href="https://facebookincubator.github.io/prophet"><code>Prophet</code></a> for time series forecasting</li>
+<li><a href="https://pandas-datareader.readthedocs.io/en/latest/"><code>pandas_datareader</code></a> for grabbing historic stock price data</li>
+</ul>
+
+<p>Prophet seems like an awesome project by Facebook to make state-of-the-art time series forecasting really easy and simple. I&rsquo;ve been hoping to give it a try for a while.</p>
+
+<p>I&rsquo;ve also been itching to play aound with pandas-datareader, which makes it really grab data from multiple <a href="https://pandas-datareader.readthedocs.io/en/latest/remote_data.html">remote datasources</a>, including historic stock prices from <a href="https://pandas-datareader.readthedocs.io/en/latest/remote_data.html#remote-data-yahoo">Yahoo! Finance</a></p>
+
+<p>I decided to see how Prophet does at forecasting future stock prices based on historic data. Now, before you scold me about the fact that <a href="https://en.wikipedia.org/wiki/Random_walk_hypothesis">what I&rsquo;m doing is silly</a>, I know, you can&rsquo;t really use this to predict stock prices, but time series forecasting can be useful for many other things.</p>
+
+<p>Plus it never hurts to prove well known hypothesis to yourself, no matter how much it might seem like common knowledge.</p>
+
+<p>So I don&rsquo;t really expect to become a millionaire quite yet, but it&rsquo;s a fun little project to learn more about these awesome packages.</p>
+
+<p>So let&rsquo;s get started!</p>
+
+<h3 id="enviroment">Enviroment</h3>
+
+<p>Docker, docker-compose and Jupyter is my preferred way of setting up a reproducible enviroment for analysis.</p>
+
+<p>The <a href="https://github.com/michael-erasmus/money-machine/blob/master/Analysis.ipynb">notebook</a> for this analysis runs with <a href="https://github.com/michael-erasmus/money-machine/blob/master/Dockerfile">Dockerfile</a> I set up using Jupyter&rsquo;s <a href="https://github.com/jupyter/docker-stacks/tree/master/datascience-notebook">opinionated docker image</a>, along with some tweaks to install the two custom packages.</p>
+
+<p>Once I got everything up and running, I could <a href="https://github.com/michael-erasmus/money-machine/blob/master/README.md">fire up a Notebook</a> and get cracking.</p>
+
+<pre><code class="language-python">#The usual suspects
+import datetime
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+#Plus some new interesting characters
+from fbprophet import Prophet
+import pandas_datareader.data as web
+</code></pre>
+
+<h3 id="our-data-source">Our data source</h3>
+
+<p><code>pandas_datareader</code> makes it incredibly easy to get historic stock market data</p>
+
+<p>For today we&rsquo;ll just get the daily closing prices of the S&amp;P 500 (SPY)</p>
+
+<p>We&rsquo;ll train on data from the start of 2000 to 2017-03-14
+We&rsquo;ll use the last week&rsquo;s data as a holdout set to evaluate our model (up until 2017-03-21)</p>
+
+<pre><code class="language-python">start = datetime.datetime(2000, 1,1)
+end = datetime.datetime(2017, 3, 21)
+
+train = web.DataReader(&quot;SPY&quot;, 'yahoo', start, end)
+compare = train.copy()
+train = train['2000-01-03': '2017-03-14']
+train.head()
+</code></pre>
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Open</th>
+      <th>High</th>
+      <th>Low</th>
+      <th>Close</th>
+      <th>Volume</th>
+      <th>Adj Close</th>
+    </tr>
+    <tr>
+      <th>Date</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2000-01-03</th>
+      <td>148.250000</td>
+      <td>148.250000</td>
+      <td>143.875000</td>
+      <td>145.4375</td>
+      <td>8164300</td>
+      <td>105.366938</td>
+    </tr>
+    <tr>
+      <th>2000-01-04</th>
+      <td>143.531204</td>
+      <td>144.062500</td>
+      <td>139.640594</td>
+      <td>139.7500</td>
+      <td>8089800</td>
+      <td>101.246443</td>
+    </tr>
+    <tr>
+      <th>2000-01-05</th>
+      <td>139.937500</td>
+      <td>141.531204</td>
+      <td>137.250000</td>
+      <td>140.0000</td>
+      <td>12177900</td>
+      <td>101.427563</td>
+    </tr>
+    <tr>
+      <th>2000-01-06</th>
+      <td>139.625000</td>
+      <td>141.500000</td>
+      <td>137.750000</td>
+      <td>137.7500</td>
+      <td>6227200</td>
+      <td>99.797478</td>
+    </tr>
+    <tr>
+      <th>2000-01-07</th>
+      <td>140.312500</td>
+      <td>145.750000</td>
+      <td>140.062500</td>
+      <td>145.7500</td>
+      <td>8066500</td>
+      <td>105.593338</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="can-we-forecast-future-prices">Can we forecast future prices?</h3>
+
+<p>This is where we get to play with Prophet. First we&rsquo;ll prepare our dataset in a way that Prophet likes it.</p>
+
+<pre><code class="language-python">df = pd.DataFrame({'ds': train.index, 'y': train['Adj Close']}).reset_index()
+
+df = df.drop('Date', axis=1)
+df.head()
+</code></pre>
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ds</th>
+      <th>y</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2000-01-03</td>
+      <td>105.366938</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2000-01-04</td>
+      <td>101.246443</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2000-01-05</td>
+      <td>101.427563</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2000-01-06</td>
+      <td>99.797478</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2000-01-07</td>
+      <td>105.593338</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Now we can train our model. Since we don&rsquo;t expect stock prices to really follow a weekly seasonality we&rsquo;ll switch that off.</p>
+
+<pre><code class="language-python">m = Prophet(weekly_seasonality=False)
+m.fit(df);
+</code></pre>
+
+<p>To be able to make forecasts on future dates we can use a handy helper method to generate our expected input</p>
+
+<pre><code class="language-python">future = m.make_future_dataframe(periods=365)
+</code></pre>
+
+<p>Finally we can make our prediction, using probably the coolest line of code I&rsquo;ve ever written</p>
+
+<pre><code class="language-python">forecast = m.predict(future)
+</code></pre>
+
+<h3 id="let-s-see-how-that-did">Let&rsquo;s see how that did!</h3>
+
+<p>We can use our <code>compare</code> dataframe from earlier to see how our forecasted value for yesterday&rsquo;s price compares to the actual price. We&rsquo;ll also see what our model thinks the price would be in a year from now.</p>
+
+<pre><code class="language-python">def evaluate(forecasted, compare):
+    forecasted = forecast.set_index('ds').loc['2017-3-21'][['yhat', 'yhat_lower', 'yhat_upper']]
+    real = compare.loc['2017-03-21']['Adj Close']
+    print(&quot;Yesterday's Forecast:&quot; )
+    print(&quot;{0:.2f} lower: {1:.2f}, upper: {2:.2f}, &quot;.format(forecasted['yhat'], forecasted['yhat_lower'], forecasted['yhat_upper']))
+    print(&quot;\nReal:&quot; )
+    print(real)
+
+    print('\nNext year''s Forecast:')
+
+    return forecast.tail(1)[['ds','yhat', 'yhat_lower', 'yhat_upper']]
+
+evaluate(forecasted, compare)
+</code></pre>
+
+<pre><code>Yesterday's Forecast:
+225.36 lower: 217.63, upper: 233.19,
+
+Real:
+233.729996
+
+Next years Forecast:
+</code></pre>
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ds</th>
+      <th>yhat</th>
+      <th>yhat_lower</th>
+      <th>yhat_upper</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4690</th>
+      <td>2018-03-14</td>
+      <td>242.348516</td>
+      <td>232.2096</td>
+      <td>252.518225</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Hmm, seems to be underestimating the actual price by quite a bit, however we&rsquo;re still within Prophet&rsquo;s 80% confidence interval (well almost).</p>
+
+<p>Did I mention this isn&rsquo;t acually a valid technique for making investment decisions?</p>
+
+<p>That being said, let&rsquo;s plot our performance, which again is made pretty easy by Prophet.</p>
+
+<pre><code class="language-python">p = m.plot(forecast)
+</code></pre>
+
+<p><img src="/img/money-machine-1.png" alt="png" /></p>
+
+<p>Ok, so it seems like it&rsquo;s doing pretty well modeling the trend in historic data, but it does seem to miss the recent rise in prices. One thing we could try is to force the model to fit the historic trend more or less closely, or as the Prophet documentation puts it, making the model more or less flexible.</p>
+
+<p>To do this, we can use the tweak the <code>changepoint_prior_scale</code> parameter (I&rsquo;ll chat more on changepoints a little later on). The best value I&rsquo;ve found for this parameter was <code>0.01</code></p>
+
+<pre><code class="language-python">m = Prophet(weekly_seasonality=False, changepoint_prior_scale=0.01)
+m.fit(df)
+future = m.make_future_dataframe(periods=365)
+forecast = m.predict(future)
+evaluate(forecasted, compare)
+</code></pre>
+
+<pre><code>Yesterday's Forecast:
+225.36 lower: 217.34, upper: 233.33,
+
+Real:
+233.729996
+
+Next years Forecast:
+</code></pre>
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ds</th>
+      <th>yhat</th>
+      <th>yhat_lower</th>
+      <th>yhat_upper</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4690</th>
+      <td>2018-03-14</td>
+      <td>242.348516</td>
+      <td>233.238948</td>
+      <td>252.18966</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>This makes our model overfit the data a bit more, which gets us a little closer to our real price, but we&rsquo;re still not quite there yet, and our confidence intervals is also undereporting.</p>
+
+<p>Seriously, don&rsquo;t use this to invest real money, ok?</p>
+
+<h3 id="ok-so-we-didn-t-do-too-great-what-can-we-learn">Ok, so we didn&rsquo;t do too great, what can we learn?</h3>
+
+<p>Another really nice thing about Prophet is that it&rsquo;s really easy to plot the components of your forecasts (trend, yearly and/or weekly seasonality). Often this is a pretty useful tool for analysis by itself.</p>
+
+<pre><code class="language-python">p = m.plot_components(forecast)
+</code></pre>
+
+<p><img src="/img/money-machine-2.png" alt="png" /></p>
+
+<p>From the top chart we can clearly see that we&rsquo;ve had one of the <a href="http://fortune.com/2017/03/09/stock-market-bull-market-longest/">longest bull runs in history</a>, which is pretty crazy, and our model thinks things can only go up from here. This is because of one of the fundamental underpinnings of time series forecasting.</p>
+
+<p>The market, like other time series, will have points where the general trend changes drastically. These are called <a href="https://en.wikipedia.org/wiki/Change_detection">change points</a> and a good forecasting algorithm needs to detect change points to be able to model the trend in the data. Change points are not caused by general cycles in the data either (seasonality), which can be predicted with more accuracy.</p>
+
+<p>In fact, the one thing that any forecasting algorithm cannot predict is when the next change point will be, and how what effect that will have on the trend. This is also the flaw of my money machine. The market is a <a href="https://en.wikipedia.org/wiki/Random_walk_hypothesis">random walk</a>, and even though we know everything about historic price trends, we can&rsquo;t know when trends change.</p>
+
+<p>What&rsquo;s really interesting though is looking at yearly seasonality plot. From this plot it does seem like there is a strong seasonality in growth rates of stock prices throughout the year. We see a peak around May 1st, a decline up until late October, after which prices seem to trend up again.</p>
+
+<p>This is a well known trading adage to <a href="https://en.wikipedia.org/wiki/Sell_in_May">Sell in May and go away</a>, but looking at the data, it seems to hold up quite well and might just be a good trading strategy. So maybe I have just a built a Money Machine after all!</p>
+
+<p>Then again, I&rsquo;m sure if it was that simple we would have many more self made millionaires in the stock market. From <a href="http://www.investopedia.com/terms/s/sell-in-may-and-go-away.asp#ixzz4c79c6mNF">Investopedia</a>:</p>
+
+<blockquote>
+<p>There are limitations to implementing this strategy in practice, such as added transaction costs and tax implications of the rotation in and out of equities. Another drawback is that market timing and seasonality strategies do not always work out, and the actual results may be very different from the theoretical ones.</p>
+</blockquote>
+
+<p>So please don&rsquo;t bet the farm quite yet!</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>This was a fun little test of Prophet and pandas_datareader.</p>
+
+<p>pandas_datareader makes the normally tedious task of finding, downloading, reading and transforming finance data into a dataframe incredibly easy.</p>
+
+<p>Prophet makes time series forecasting super simple, and it works with Python and R! It feels like a great tool in my analytics toolbox and I&rsquo;ve just scratched the surface of what it can do</p>
+
+<ul>
+<li><a href="https://facebookincubator.github.io/prophet/docs/forecasting_growth.html">Logistic growth modelling</a></li>
+<li><a href="https://facebookincubator.github.io/prophet/docs/trend_changepoints.html">Controlling changepoint detection and confidence</a></li>
+<li><a href="https://facebookincubator.github.io/prophet/docs/holiday_effects.html">Specifying holidays to control for holiday effects</a></li>
+<li><a href="https://facebookincubator.github.io/prophet/docs/uncertainty_intervals.html">Modelling uncertainty</a></li>
+<li><a href="https://facebookincubator.github.io/prophet/docs/outliers.html">Dealing with outliers</a></li>
+</ul>
+
+      </article>
+
+      <ul class="pager blog-pager">
+        
+          <li class="previous">
+            <a href="http://michaelerasm.us/post/tf-idf-in-10-minutes/" data-toggle="tooltip" data-placement="top" title="What is TF-IDF? The 10 minute guide">&larr; Previous Post</a>
+          </li>
+        
+        
+      </ul>
+
+      
+        
+          <div class="disqus-comments">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'michaelerasm-us';
+    var disqus_identifier = 'http:\/\/michaelerasm.us\/post\/money-machine\/';
+    var disqus_title = 'A machine that generates money with pandas-datareader and Prophet';
+    var disqus_url = 'http:\/\/michaelerasm.us\/post\/money-machine\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+          </div>
+        
+      
+
+    </div>
+  </div>
+</div>
+
+      
+    </div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+          
+          
+          <li>
+            <a href="https://github.com/michael-erasmus" title="GitHub">
+              <span class="fa-stack fa-lg">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li>
+            <a href="https://twitter.com/michael_erasmus" title="Twitter">
+              <span class="fa-stack fa-lg">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          Michael Erasmus
+          &nbsp;&bull;&nbsp;
+          2017
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="http://michaelerasm.us/">michaelerasm.us</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.19</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js" integrity="sha384-/y1Nn9+QQAipbNQWU65krzJralCnuOasHncUFXGkdwntGeSvQicrYkiUBwsgUqc1" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/contrib/auto-render.min.js" integrity="sha384-dq1/gEHSxPZQ7DdrM82ID4YVol9BYyU7GbWlIwnwyPzotpoc57wDw/guX8EaYGPx" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="http://michaelerasm.us//js/main.js"></script>
+<script src="http://michaelerasm.us//js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> renderMathInElement(document.body); </script>
+
+
+
+
+  </body>
+</html>
