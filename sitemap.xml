@@ -2,6 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://michaelerasm.us/post/window-functions-in-redshift/</loc>
+    <lastmod>2017-04-12T17:00:30-07:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://michaelerasm.us/post/money-machine/</loc>
     <lastmod>2017-03-23T16:50:00-07:00</lastmod>
   </url>
@@ -27,13 +32,13 @@
   
   <url>
     <loc>http://michaelerasm.us/post/</loc>
-    <lastmod>2017-03-23T16:50:00-07:00</lastmod>
+    <lastmod>2017-04-12T17:00:30-07:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://michaelerasm.us/</loc>
-    <lastmod>2017-03-23T16:50:00-07:00</lastmod>
+    <lastmod>2017-04-12T17:00:30-07:00</lastmod>
     <priority>0</priority>
   </url>
   

@@ -6,8 +6,280 @@
     <description>Recent content on michaelerasm.us</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 23 Mar 2017 16:50:00 -0700</lastBuildDate>
+    <lastBuildDate>Wed, 12 Apr 2017 17:00:30 -0700</lastBuildDate>
     <atom:link href="http://michaelerasm.us/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Window Functions in Redshift</title>
+      <link>http://michaelerasm.us/post/window-functions-in-redshift/</link>
+      <pubDate>Wed, 12 Apr 2017 17:00:30 -0700</pubDate>
+      
+      <guid>http://michaelerasm.us/post/window-functions-in-redshift/</guid>
+      <description>
+
+&lt;p&gt;One of the coolest things I learned about in my Redshift journey has been Window Functions.&lt;/p&gt;
+
+&lt;p&gt;Although Window functions aren&amp;rsquo;t a novel feature and exists in other SQL databases, they are a really powerful tool to have in your analysis toolbelt and fits in really well with Redshift.&lt;/p&gt;
+
+&lt;p&gt;Like the name suggests, Window Functions let you operate on frame or &amp;lsquo;window&amp;rsquo; of data and return a value for each row in that result set.&lt;/p&gt;
+
+&lt;p&gt;An easy way to understand this is to think about a spreadsheet. Cells in a spreadsheet can reference arbitrary ranges of other cells relative to themselves and use their values as input to functions.&lt;/p&gt;
+
+&lt;p&gt;Window functions work in much the same way, and thus can be super powerful for the same kind of operations you can perform in a spreadsheet and even beyond that.&lt;/p&gt;
+
+&lt;p&gt;In this post, I&amp;rsquo;ll walk you through some of the Window Functions that I&amp;rsquo;ve found the most useful and hopefully help you gain a better intuition on how they work in general.&lt;/p&gt;
+
+&lt;h2 id=&#34;looking-ahead-or-behind&#34;&gt;Looking ahead or behind&lt;/h2&gt;
+
+&lt;p&gt;The most basic window functions help you access data from &amp;lsquo;previous&amp;rsquo; or &amp;lsquo;following&amp;rsquo; rows, much like you can do in a spreadsheet.&lt;/p&gt;
+
+&lt;p&gt;Two of the most useful window functions are the &lt;code&gt;lead&lt;/code&gt; and &lt;code&gt;lag&lt;/code&gt; functions.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s say you have a simple table of timeseries data, for instance the closing balance of your stock market account per day.&lt;/p&gt;
+
+&lt;p&gt;Now let&amp;rsquo;s say for each day you would like to calculate your loss/gain over the previous day&amp;rsquo;s balance.&lt;/p&gt;
+
+&lt;p&gt;One way to do this would be something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  b.date
+  , b.balance
+  , b.balance - previous_day.balance as gain
+from balances b
+left join balances previous_day on dateadd(day, -1, b.date) = previous_day.date
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;lag&lt;/code&gt; window function allow us to simplify things, without having to do a self-join.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  date
+  , balance
+  , balance - lag(balance,1) over (
+      order by date
+  ) as gain
+from balances
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;lag&lt;/code&gt; function allows us to grab the value of a column in a &amp;lsquo;previous&amp;rsquo; row (&lt;code&gt;lead&lt;/code&gt; does the opposite, by accessing the next row). We can specify the ordering of rows within the window function in the &lt;code&gt;over(order by date)&lt;/code&gt; clause.&lt;/p&gt;
+
+&lt;p&gt;One interesting thing to note is that the window function does not rely on the ordering of the query itself. If we were to order differently in the outer query, the &lt;code&gt;lag&lt;/code&gt; function would still calculate &lt;code&gt;gain&lt;/code&gt; correctly.&lt;/p&gt;
+
+&lt;p&gt;Another pair of functions that are pretty useful for looking ahead or backwards are &lt;code&gt;first_value&lt;/code&gt; and &lt;code&gt;last_value&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Say you always want to calculate the difference of your daily closing balance with the first balance you had when opening the account, you can use the &lt;code&gt;first_value&lt;/code&gt; window function to do this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  date
+  , balance
+  , balance - first_value(balance) over (
+      order by date
+      rows unbounded preceding
+  ) as total_gain
+from balances
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This time, we also include a frame clause: &lt;code&gt;rows unbounded preceding&lt;/code&gt;. This tells our window function to use all the rows preceding the current row, after sorting on the &lt;code&gt;date&lt;/code&gt; field.&lt;/p&gt;
+
+&lt;h2 id=&#34;aggregations&#34;&gt;Aggregations&lt;/h2&gt;
+
+&lt;p&gt;Window functions also lets you do more complex aggregations on frames of data.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s say you also have &lt;code&gt;trades&lt;/code&gt; table where you keep track of all your stock trading. It&amp;rsquo;s pretty simple and it has &lt;code&gt;ts&lt;/code&gt; (timestamp), &lt;code&gt;symbol&lt;/code&gt; and &lt;code&gt;profit&lt;/code&gt; columns.&lt;/p&gt;
+
+&lt;p&gt;Now let&amp;rsquo;s say you want to list out all my trades over time, with a running total of your profit per symbol.&lt;/p&gt;
+
+&lt;p&gt;We can use the &lt;code&gt;sum&lt;/code&gt; window function to do this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  ts
+  , symbol
+  , profit
+  , sum(profit) over (
+      partition by symbol
+      order by ts
+      rows unbounded preceding
+   ) total_profit_for_symbol
+from trades
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As you can see, we&amp;rsquo;re using the &lt;code&gt;sum&lt;/code&gt; aggregation as a window function to calculate our running total. This is different from a normal &lt;code&gt;sum&lt;/code&gt; aggregation you would do in Redshift, because you don&amp;rsquo;t need to add a &lt;code&gt;group by&lt;/code&gt; clause, but instead you&amp;rsquo;re adding an &lt;code&gt;over&lt;/code&gt; clause.&lt;/p&gt;
+
+&lt;p&gt;In the &lt;code&gt;over&lt;/code&gt; clause, we&amp;rsquo;re still sorting by date and we also have a frame clause.&lt;/p&gt;
+
+&lt;p&gt;We also include a &lt;code&gt;partition by symbol&lt;/code&gt; clause. This will essentially &amp;lsquo;filter&amp;rsquo; our aggregation to only include rows that have the same value for &lt;code&gt;symbol&lt;/code&gt; as our current row.&lt;/p&gt;
+
+&lt;h2 id=&#34;ranking-and-numbering&#34;&gt;Ranking and numbering&lt;/h2&gt;
+
+&lt;p&gt;Aside from aggregation, Window Functions can also do ranking or numbering of rows. This might not seem especially interesting at first, but once you have this tool at your disposal you&amp;rsquo;ll find lots of uses for it.&lt;/p&gt;
+
+&lt;p&gt;For instance, let&amp;rsquo;s say you have duplicated data that you want to filter out, but your table has no primary key to that you can use to figure out which records are duplicated.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s say I had a bug in my code and I accidentally adding a bunch of duplicate trades to my &lt;code&gt;trades&lt;/code&gt; table and wanted to write a query to clean things up.&lt;/p&gt;
+
+&lt;p&gt;This is where the &lt;code&gt;row_number()&lt;/code&gt; function can come in very handy.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;with dupe_trades as (
+   select
+       *
+       , row_number() over (
+           partition by ts, symbol, profit
+       )
+   from trades
+   order by ts
+)
+select * from dupe_trades
+where row_number = 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Since we&amp;rsquo;re partitioning by all the columns in the table, any set of rows with duplicate values will have a &lt;code&gt;row_number&lt;/code&gt; column, starting at &lt;code&gt;1&lt;/code&gt; to &lt;code&gt;n&lt;/code&gt;, where &lt;code&gt;n&lt;/code&gt; is the number of duplicates.&lt;/p&gt;
+
+&lt;p&gt;To filter out duplicates, we can just take all the rows with a &lt;code&gt;row_number&lt;/code&gt; of &lt;code&gt;1&lt;/code&gt;. This will just give us back the first row out of the set of duplicates.&lt;/p&gt;
+
+&lt;p&gt;You might be wondering why I used a &lt;a href=&#34;https://docs.aws.amazon.com/redshift/latest/dg/r_WITH_clause.html&#34;&gt;CTE&lt;/a&gt; here. Well, one gotcha of Window Functions is that they can&amp;rsquo;t be used in a &lt;code&gt;where&lt;/code&gt; clause (the window function is applied to the result set after the where clause is run).&lt;/p&gt;
+
+&lt;p&gt;By wrapping the Window Function in a CTE with the &lt;code&gt;with&lt;/code&gt; clause, we can tell Redshift that we want to apply the Window Function before filtering.&lt;/p&gt;
+
+&lt;p&gt;If we wanted to see how many duplicates we have on average by symbol, we can do this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;with with_row_number as (
+   select
+       *
+       , row_number() over (
+           partition by ts, symbol, profit
+      )
+   from trades
+   order by ts
+),
+with_number_of_duplicates as (
+   select
+       *
+       , (max(row_number) over (
+           partition by ts,symbol,profit
+         ) -1)  as number_of_duplicates
+   from with_row_number
+   group by 1,2,3,4
+)
+select
+   symbol
+   , sum(number_of_duplicates) as number_of_duplicates_for_symbol
+from with_number_of_duplicates
+group by 1
+order by 2 desc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here we&amp;rsquo;re making use of the &lt;code&gt;max&lt;/code&gt; aggregation as a window function to get the number of duplicates per set of duplicate values, together with our trick of grouping by all the other columns.&lt;/p&gt;
+
+&lt;h2 id=&#34;avoiding-correlated-subqueries&#34;&gt;Avoiding correlated subqueries&lt;/h2&gt;
+
+&lt;p&gt;Window Functions can be used to avoid correlated subqueries.&lt;/p&gt;
+
+&lt;p&gt;A subquery is correlated when it references values from the outer query. Correlated subqueries need to be evaluated for each row of the outer query and can thus be slow.&lt;/p&gt;
+
+&lt;p&gt;To illustrate, let&amp;rsquo;s return back to our &lt;code&gt;trades&lt;/code&gt; table. Let&amp;rsquo;s say I want to list all the trades, and see not only the profit for that trade but how it compares to the average profit for that symbol.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s how you would do it with a correlated subquery.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  ts
+  , symbol
+  , profit
+  (
+    select
+      avg(profit)
+    from trades t2
+    where t2.symbol = t1.symbol
+   ) average_profit_for_symbol
+from trades t1
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Since the subquery references the &lt;code&gt;symbol&lt;/code&gt; column in the outer query, it will need to be evaluated for each row.&lt;/p&gt;
+
+&lt;p&gt;If we had a lot of data, this could be slow. Here&amp;rsquo;s how we can implement this using the &lt;code&gt;avg&lt;/code&gt; window function.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  date
+  , symbol
+  , profit
+  , avg(profit) over (
+      partition by symbol
+  ) as average_profit_for_symbol
+from trades
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Ah much cleaner!&lt;/p&gt;
+
+&lt;h2 id=&#34;doing-statistics&#34;&gt;Doing Statistics&lt;/h2&gt;
+
+&lt;p&gt;Window functions are super useful for calculating standard summary statistics.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s revisit the query I wrote earlier to compare the profit on a trade to the average profit for trades on that symbol. Let&amp;rsquo;s say instead of the mean, I want to use the median.&lt;/p&gt;
+
+&lt;p&gt;To do this, I could use the &lt;code&gt;median&lt;/code&gt; window function.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  date
+  , symbol
+  , profit
+  , median(profit) over (
+      partition by symbol
+  ) as median_profit_for_symbol
+from trades
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We could also do more interesting stats like the percentiles and standard deviations.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  date
+  , symbol
+  , profit
+  , median(profit) over (
+      partition by symbol
+  ) as median_profit_for_symbol
+  , stddev_pop(profit) over (
+    partition by symbol
+  ) as profit_std_dev_for_symbol
+  , ntile(4) over (
+    partition by symbol
+    order by profit
+  ) as profit_ntile_for_symbol
+from trades
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;aggregating-lists&#34;&gt;Aggregating lists&lt;/h2&gt;
+
+&lt;p&gt;Finally, you can use window functions as a way to concatenate a list of column values into a single value. The &lt;code&gt;listagg&lt;/code&gt; function will group and order a list of rows and then concatenate it&amp;rsquo;s values into a single string.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s say for a particular trading day we want to not only see the closing balance, but also a list of symbols that we&amp;rsquo;ve trading that day in a comma separated string.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  date
+  , balance
+  , balance - first_value(balance) over (
+      order by b.date
+      rows unbounded preceding
+  ) as total_gain
+  , listagg(symbol, &#39;, &#39;) symbols_traded
+from balances
+left join trades on date(balances.date) = date(trades.ts)
+group by 1,2
+order by date
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;One thing to be careful of is the the total size of the resulting string cannot be bigger than a &lt;code&gt;varchar(max)&lt;/code&gt; which is 65535 characters.&lt;/p&gt;
+
+&lt;h2 id=&#34;that-s-a-wrap&#34;&gt;That&amp;rsquo;s a wrap!&lt;/h2&gt;
+
+&lt;p&gt;That concludes our short tour of window functions in Redshift. My hope is that I have convinced you that they can be a powerful addition to your analysis tool belt and  this gives you a good start to go explore more on your own and learn more about all the &lt;a href=&#34;https://docs.aws.amazon.com/redshift/latest/dg/c_Window_functions.html&#34;&gt;other window functions&lt;/a&gt; that you can use in Redshift!&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>A machine that generates money with pandas-datareader and Prophet</title>

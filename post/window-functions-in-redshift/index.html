@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>Window Functions in Redshift</title>
+  
+  <meta name="author" content="Michael Erasmus"/>
+  <meta name="generator" content="Hugo 0.19" />
+  
+
+  <link rel="alternate" href="http://michaelerasm.us/index.xml" type="application/rss+xml" title="michaelerasm.us">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" integrity="sha384-wITovz90syo1dJWVh32uuETPVEtGigN07tkttEqPv+uR2SE/mbQcG7ATL28aI9H0" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="http://michaelerasm.us//css/main.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/pygment_highlights.css" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/highlight.min.css">
+
+  
+  
+ 
+  
+    <meta property="og:title" content="Window Functions in Redshift" />
+  
+
+  
+    <meta property="og:description" content=" One of the coolest things I learned about in my Redshift journey has been Window Functions.
+Although Window functions aren&amp;amp;rsquo;t a novel feature and exists in other SQL databases, they are a …">
+  
+
+  <meta property="og:type" content="website" />
+
+  
+    <meta property="og:url" content="http://michaelerasm.us/post/window-functions-in-redshift/" />
+    <link rel="canonical" href="http://michaelerasm.us/post/window-functions-in-redshift/" />
+  
+
+  
+  
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@michael_erasmus" />
+  <meta name="twitter:creator" content="@michael_erasmus" />
+
+  
+    <meta name="twitter:title" content="Window Functions in Redshift" />
+  
+
+  
+    <meta name="twitter:description" content=" One of the coolest things I learned about in my Redshift journey has been Window Functions.
+Although Window functions aren&amp;amp;rsquo;t a novel feature and exists in other SQL databases, they are a …">
+  
+
+   
+
+</head>
+
+
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://michaelerasm.us/">michaelerasm.us</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Blog" href="/">Blog</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="About" href="/page/about/">About</a>
+            </li>
+          
+        
+      </ul>
+    </div>
+
+    <div class="avatar-container">
+      <div class="avatar-img-border">
+        
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+    
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+        <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <div class="post-heading">
+          <h1>Window Functions in Redshift</h1>
+            
+
+            
+              <span class="post-meta">Posted on 17:00:30 on Wed Apr 12 2017</span>
+            
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </header>
+
+
+    <div class="container" role="main">
+      
+        <div class="container">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        
+
+<p>One of the coolest things I learned about in my Redshift journey has been Window Functions.</p>
+
+<p>Although Window functions aren&rsquo;t a novel feature and exists in other SQL databases, they are a really powerful tool to have in your analysis toolbelt and fits in really well with Redshift.</p>
+
+<p>Like the name suggests, Window Functions let you operate on frame or &lsquo;window&rsquo; of data and return a value for each row in that result set.</p>
+
+<p>An easy way to understand this is to think about a spreadsheet. Cells in a spreadsheet can reference arbitrary ranges of other cells relative to themselves and use their values as input to functions.</p>
+
+<p>Window functions work in much the same way, and thus can be super powerful for the same kind of operations you can perform in a spreadsheet and even beyond that.</p>
+
+<p>In this post, I&rsquo;ll walk you through some of the Window Functions that I&rsquo;ve found the most useful and hopefully help you gain a better intuition on how they work in general.</p>
+
+<h2 id="looking-ahead-or-behind">Looking ahead or behind</h2>
+
+<p>The most basic window functions help you access data from &lsquo;previous&rsquo; or &lsquo;following&rsquo; rows, much like you can do in a spreadsheet.</p>
+
+<p>Two of the most useful window functions are the <code>lead</code> and <code>lag</code> functions.</p>
+
+<p>Let&rsquo;s say you have a simple table of timeseries data, for instance the closing balance of your stock market account per day.</p>
+
+<p>Now let&rsquo;s say for each day you would like to calculate your loss/gain over the previous day&rsquo;s balance.</p>
+
+<p>One way to do this would be something like this:</p>
+
+<pre><code class="language-sql">select
+  b.date
+  , b.balance
+  , b.balance - previous_day.balance as gain
+from balances b
+left join balances previous_day on dateadd(day, -1, b.date) = previous_day.date
+order by date
+</code></pre>
+
+<p>The <code>lag</code> window function allow us to simplify things, without having to do a self-join.</p>
+
+<pre><code class="language-sql">select
+  date
+  , balance
+  , balance - lag(balance,1) over (
+      order by date
+  ) as gain
+from balances
+order by date
+</code></pre>
+
+<p>The <code>lag</code> function allows us to grab the value of a column in a &lsquo;previous&rsquo; row (<code>lead</code> does the opposite, by accessing the next row). We can specify the ordering of rows within the window function in the <code>over(order by date)</code> clause.</p>
+
+<p>One interesting thing to note is that the window function does not rely on the ordering of the query itself. If we were to order differently in the outer query, the <code>lag</code> function would still calculate <code>gain</code> correctly.</p>
+
+<p>Another pair of functions that are pretty useful for looking ahead or backwards are <code>first_value</code> and <code>last_value</code>.</p>
+
+<p>Say you always want to calculate the difference of your daily closing balance with the first balance you had when opening the account, you can use the <code>first_value</code> window function to do this:</p>
+
+<pre><code class="language-sql">select
+  date
+  , balance
+  , balance - first_value(balance) over (
+      order by date
+      rows unbounded preceding
+  ) as total_gain
+from balances
+order by date
+</code></pre>
+
+<p>This time, we also include a frame clause: <code>rows unbounded preceding</code>. This tells our window function to use all the rows preceding the current row, after sorting on the <code>date</code> field.</p>
+
+<h2 id="aggregations">Aggregations</h2>
+
+<p>Window functions also lets you do more complex aggregations on frames of data.</p>
+
+<p>Let&rsquo;s say you also have <code>trades</code> table where you keep track of all your stock trading. It&rsquo;s pretty simple and it has <code>ts</code> (timestamp), <code>symbol</code> and <code>profit</code> columns.</p>
+
+<p>Now let&rsquo;s say you want to list out all my trades over time, with a running total of your profit per symbol.</p>
+
+<p>We can use the <code>sum</code> window function to do this:</p>
+
+<pre><code class="language-sql">select
+  ts
+  , symbol
+  , profit
+  , sum(profit) over (
+      partition by symbol
+      order by ts
+      rows unbounded preceding
+   ) total_profit_for_symbol
+from trades
+order by date
+</code></pre>
+
+<p>As you can see, we&rsquo;re using the <code>sum</code> aggregation as a window function to calculate our running total. This is different from a normal <code>sum</code> aggregation you would do in Redshift, because you don&rsquo;t need to add a <code>group by</code> clause, but instead you&rsquo;re adding an <code>over</code> clause.</p>
+
+<p>In the <code>over</code> clause, we&rsquo;re still sorting by date and we also have a frame clause.</p>
+
+<p>We also include a <code>partition by symbol</code> clause. This will essentially &lsquo;filter&rsquo; our aggregation to only include rows that have the same value for <code>symbol</code> as our current row.</p>
+
+<h2 id="ranking-and-numbering">Ranking and numbering</h2>
+
+<p>Aside from aggregation, Window Functions can also do ranking or numbering of rows. This might not seem especially interesting at first, but once you have this tool at your disposal you&rsquo;ll find lots of uses for it.</p>
+
+<p>For instance, let&rsquo;s say you have duplicated data that you want to filter out, but your table has no primary key to that you can use to figure out which records are duplicated.</p>
+
+<p>Let&rsquo;s say I had a bug in my code and I accidentally adding a bunch of duplicate trades to my <code>trades</code> table and wanted to write a query to clean things up.</p>
+
+<p>This is where the <code>row_number()</code> function can come in very handy.</p>
+
+<pre><code class="language-sql">with dupe_trades as (
+   select
+       *
+       , row_number() over (
+           partition by ts, symbol, profit
+       )
+   from trades
+   order by ts
+)
+select * from dupe_trades
+where row_number = 1
+</code></pre>
+
+<p>Since we&rsquo;re partitioning by all the columns in the table, any set of rows with duplicate values will have a <code>row_number</code> column, starting at <code>1</code> to <code>n</code>, where <code>n</code> is the number of duplicates.</p>
+
+<p>To filter out duplicates, we can just take all the rows with a <code>row_number</code> of <code>1</code>. This will just give us back the first row out of the set of duplicates.</p>
+
+<p>You might be wondering why I used a <a href="https://docs.aws.amazon.com/redshift/latest/dg/r_WITH_clause.html">CTE</a> here. Well, one gotcha of Window Functions is that they can&rsquo;t be used in a <code>where</code> clause (the window function is applied to the result set after the where clause is run).</p>
+
+<p>By wrapping the Window Function in a CTE with the <code>with</code> clause, we can tell Redshift that we want to apply the Window Function before filtering.</p>
+
+<p>If we wanted to see how many duplicates we have on average by symbol, we can do this:</p>
+
+<pre><code class="language-sql">with with_row_number as (
+   select
+       *
+       , row_number() over (
+           partition by ts, symbol, profit
+      )
+   from trades
+   order by ts
+),
+with_number_of_duplicates as (
+   select
+       *
+       , (max(row_number) over (
+           partition by ts,symbol,profit
+         ) -1)  as number_of_duplicates
+   from with_row_number
+   group by 1,2,3,4
+)
+select
+   symbol
+   , sum(number_of_duplicates) as number_of_duplicates_for_symbol
+from with_number_of_duplicates
+group by 1
+order by 2 desc
+</code></pre>
+
+<p>Here we&rsquo;re making use of the <code>max</code> aggregation as a window function to get the number of duplicates per set of duplicate values, together with our trick of grouping by all the other columns.</p>
+
+<h2 id="avoiding-correlated-subqueries">Avoiding correlated subqueries</h2>
+
+<p>Window Functions can be used to avoid correlated subqueries.</p>
+
+<p>A subquery is correlated when it references values from the outer query. Correlated subqueries need to be evaluated for each row of the outer query and can thus be slow.</p>
+
+<p>To illustrate, let&rsquo;s return back to our <code>trades</code> table. Let&rsquo;s say I want to list all the trades, and see not only the profit for that trade but how it compares to the average profit for that symbol.</p>
+
+<p>Here&rsquo;s how you would do it with a correlated subquery.</p>
+
+<pre><code class="language-sql">select
+  ts
+  , symbol
+  , profit
+  (
+    select
+      avg(profit)
+    from trades t2
+    where t2.symbol = t1.symbol
+   ) average_profit_for_symbol
+from trades t1
+order by date
+</code></pre>
+
+<p>Since the subquery references the <code>symbol</code> column in the outer query, it will need to be evaluated for each row.</p>
+
+<p>If we had a lot of data, this could be slow. Here&rsquo;s how we can implement this using the <code>avg</code> window function.</p>
+
+<pre><code class="language-sql">select
+  date
+  , symbol
+  , profit
+  , avg(profit) over (
+      partition by symbol
+  ) as average_profit_for_symbol
+from trades
+order by date
+</code></pre>
+
+<p>Ah much cleaner!</p>
+
+<h2 id="doing-statistics">Doing Statistics</h2>
+
+<p>Window functions are super useful for calculating standard summary statistics.</p>
+
+<p>Let&rsquo;s revisit the query I wrote earlier to compare the profit on a trade to the average profit for trades on that symbol. Let&rsquo;s say instead of the mean, I want to use the median.</p>
+
+<p>To do this, I could use the <code>median</code> window function.</p>
+
+<pre><code class="language-sql">select
+  date
+  , symbol
+  , profit
+  , median(profit) over (
+      partition by symbol
+  ) as median_profit_for_symbol
+from trades
+order by date
+</code></pre>
+
+<p>We could also do more interesting stats like the percentiles and standard deviations.</p>
+
+<pre><code class="language-sql">select
+  date
+  , symbol
+  , profit
+  , median(profit) over (
+      partition by symbol
+  ) as median_profit_for_symbol
+  , stddev_pop(profit) over (
+    partition by symbol
+  ) as profit_std_dev_for_symbol
+  , ntile(4) over (
+    partition by symbol
+    order by profit
+  ) as profit_ntile_for_symbol
+from trades
+order by date
+</code></pre>
+
+<h2 id="aggregating-lists">Aggregating lists</h2>
+
+<p>Finally, you can use window functions as a way to concatenate a list of column values into a single value. The <code>listagg</code> function will group and order a list of rows and then concatenate it&rsquo;s values into a single string.</p>
+
+<p>Let&rsquo;s say for a particular trading day we want to not only see the closing balance, but also a list of symbols that we&rsquo;ve trading that day in a comma separated string.</p>
+
+<pre><code class="language-sql">select
+  date
+  , balance
+  , balance - first_value(balance) over (
+      order by b.date
+      rows unbounded preceding
+  ) as total_gain
+  , listagg(symbol, ', ') symbols_traded
+from balances
+left join trades on date(balances.date) = date(trades.ts)
+group by 1,2
+order by date
+</code></pre>
+
+<p>One thing to be careful of is the the total size of the resulting string cannot be bigger than a <code>varchar(max)</code> which is 65535 characters.</p>
+
+<h2 id="that-s-a-wrap">That&rsquo;s a wrap!</h2>
+
+<p>That concludes our short tour of window functions in Redshift. My hope is that I have convinced you that they can be a powerful addition to your analysis tool belt and  this gives you a good start to go explore more on your own and learn more about all the <a href="https://docs.aws.amazon.com/redshift/latest/dg/c_Window_functions.html">other window functions</a> that you can use in Redshift!</p>
+
+      </article>
+
+      <ul class="pager blog-pager">
+        
+          <li class="previous">
+            <a href="http://michaelerasm.us/post/money-machine/" data-toggle="tooltip" data-placement="top" title="A machine that generates money with pandas-datareader and Prophet">&larr; Previous Post</a>
+          </li>
+        
+        
+      </ul>
+
+      
+        
+          <div class="disqus-comments">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'michaelerasm-us';
+    var disqus_identifier = 'http:\/\/michaelerasm.us\/post\/window-functions-in-redshift\/';
+    var disqus_title = 'Window Functions in Redshift';
+    var disqus_url = 'http:\/\/michaelerasm.us\/post\/window-functions-in-redshift\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+          </div>
+        
+      
+
+    </div>
+  </div>
+</div>
+
+      
+    </div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+          
+          
+          <li>
+            <a href="https://github.com/michael-erasmus" title="GitHub">
+              <span class="fa-stack fa-lg">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li>
+            <a href="https://twitter.com/michael_erasmus" title="Twitter">
+              <span class="fa-stack fa-lg">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          Michael Erasmus
+          &nbsp;&bull;&nbsp;
+          2017
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="http://michaelerasm.us/">michaelerasm.us</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.19</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js" integrity="sha384-/y1Nn9+QQAipbNQWU65krzJralCnuOasHncUFXGkdwntGeSvQicrYkiUBwsgUqc1" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/contrib/auto-render.min.js" integrity="sha384-dq1/gEHSxPZQ7DdrM82ID4YVol9BYyU7GbWlIwnwyPzotpoc57wDw/guX8EaYGPx" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="http://michaelerasm.us//js/main.js"></script>
+<script src="http://michaelerasm.us//js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> renderMathInElement(document.body); </script>
+
+
+
+
+  </body>
+</html>
