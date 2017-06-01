@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>My essential data science tools</title>
+  
+  <meta name="author" content="Michael Erasmus"/>
+  <meta name="generator" content="Hugo 0.21" />
+  
+
+  <link rel="alternate" href="http://michaelerasm.us/index.xml" type="application/rss+xml" title="michaelerasm.us">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" integrity="sha384-wITovz90syo1dJWVh32uuETPVEtGigN07tkttEqPv+uR2SE/mbQcG7ATL28aI9H0" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="http://michaelerasm.us//css/main.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/pygment_highlights.css" />
+  <link rel="stylesheet" href="http://michaelerasm.us//css/highlight.min.css">
+
+  
+  
+ 
+  
+    <meta property="og:title" content="My essential data science tools" />
+  
+
+  
+    <meta property="og:description" content=" Over the last few years of working with data I&amp;amp;rsquo;ve collected a toolbox of essential tools that I think all Data Scientists should know and use. All of these tools will not only help you be …">
+  
+
+  <meta property="og:type" content="website" />
+
+  
+    <meta property="og:url" content="http://michaelerasm.us/post/my-essential-data-science-tools/" />
+    <link rel="canonical" href="http://michaelerasm.us/post/my-essential-data-science-tools/" />
+  
+
+  
+  
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@michael_erasmus" />
+  <meta name="twitter:creator" content="@michael_erasmus" />
+
+  
+    <meta name="twitter:title" content="My essential data science tools" />
+  
+
+  
+    <meta name="twitter:description" content=" Over the last few years of working with data I&amp;amp;rsquo;ve collected a toolbox of essential tools that I think all Data Scientists should know and use. All of these tools will not only help you be …">
+  
+
+   
+
+</head>
+
+
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://michaelerasm.us/">michaelerasm.us</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Blog" href="/">Blog</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="About" href="/page/about/">About</a>
+            </li>
+          
+        
+      </ul>
+    </div>
+
+    <div class="avatar-container">
+      <div class="avatar-img-border">
+        
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+    
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+        <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <div class="post-heading">
+          <h1>My essential data science tools</h1>
+            
+
+            
+              <span class="post-meta">Posted on 14:55:43 on Tue May 23 2017</span>
+            
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </header>
+
+
+    <div class="container" role="main">
+      
+        <div class="container">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        
+
+<p>Over the last few years of working with data I&rsquo;ve collected a toolbox of essential tools that I think all Data Scientists should know and use. All of these tools will not only help you be more efficient as a data scientist or data analyst, but will also help you work better within a team, be more organized and flexible and produce analyses that will be more easily reproducible by others.</p>
+
+<p>These probably aren&rsquo;t the only tools you&rsquo;ll end up needing to use day-to-day, but this list of tools will be universally useful.</p>
+
+<p>So without further ado, here is my list of essentials:</p>
+
+<h2 id="python">Python</h2>
+
+<p>To start out with, I have to mention that I&rsquo;m totally biased here. I really love Python and it&rsquo;s my go-to language of choice when it comes to almost any programming task.</p>
+
+<p>The R vs Python (vs Matlab and many others) language wars in data science have been around for a long time, and many have chimed in on it. I&rsquo;m not here today to convince you which language is better for data science, or even that you have to choose (I&rsquo;m a big fan of R too, and even though Python is catching up, R has been a de-facto standard for a long time).</p>
+
+<p>But when it comes to a <strong>general scripting language</strong>, Python is really hard to beat. It&rsquo;s easy to learn, easy to read and write and comes with a vast amount of packages that be used for general purpose automation and data munging.</p>
+
+<p>Python is perfect for consuming web API&rsquo;s or scraping data from websites. It&rsquo;s great for working with various data formats such as json, csv, excel, or something more exotic like Parquet, Avro or Protobuf. It&rsquo;s also really great for connecting to external databases like Postgres, Redshift or MongoDB.</p>
+
+<p>These are just a few reasons to know and love this lovely little scripting language and I could probably rant on for much longer, but I&rsquo;ll leave this here for now.</p>
+
+<p><img src="https://imgs.xkcd.com/comics/python.png" alt="" /></p>
+
+<p>If you wanted to learn Python in a hurry, I would suggests <a href="https://learnxinyminutes.com/docs/python3/">this tutorial</a> by <a href="https://learnxinyminutes.com">learnxinyminutes</a> or if you wanted a more thorough treatment of the subject try <a href="https://learnpythonthehardway.org/">Learn Python the Hard Way</a></p>
+
+<h2 id="docker">Docker</h2>
+
+<p>To say that Docker has changed the way I think about Data Science is an understatement. Probably the first thing I&rsquo;d do when starting a new data analysis is to set up my containerized environment.</p>
+
+<p>If you&rsquo;re unfamiliar with Docker, it&rsquo;s basically lets you run an application within a container, which is like a light-weight virtual machine that can run completely isolated from it&rsquo;s host environment and which creation can be automated in a way that you can always recreate it from scratch.</p>
+
+<p>Containers are created from images, which can be thought of complete snapshots of an environment at any point of time. Images can be shared with other people and extended, and if you share your analysis code along with the Docker image that was used to create it initially, you can pretty much guarantee that your analysis will be reproducible.</p>
+
+<p>This makes reproducible analysis really easy, and it makes it really easy for someone to take any analysis you did and run it for themselves without having to install any software (other than Docker).</p>
+
+<p>A good place to get started with Docker would be <a href="https://www.dataquest.io/blog/docker-data-science/">this awesome tutorial</a>.</p>
+
+<h2 id="bash">Bash</h2>
+
+<p>The Unix OS was invented in the 1970&rsquo;s and to this day it&rsquo;s many variants and offshoots, like Linux and Mac OSX are still widely in use and beloved by software engineers and data scientists.</p>
+
+<p>Learning to use to use the bash shell and working on the command-line is an essential data science skill that unlocks a world of computing tools that have been developed over decades (some of which I&rsquo;ll cover later on in this post) and will not just help you become a more efficient data scientist, but a more efficient computer user in general.</p>
+
+<p>Learning the basics of using the terminal will also enable you work on computers with no graphical user interface, like a beefy EC2 server your running in the cloud.</p>
+
+<p>In my opinion, the greatest benefit to learning bash is it&rsquo;s <a href="https://en.wikipedia.org/wiki/Unix_philosophy">philosophy</a> of using simple, small, modular tools that can be composed together in pipelines to produce solutions to complex problems.</p>
+
+<p>If you want to get started with bash quickly this is a <a href="https://learnpythonthehardway.org/book/appendixa.html">great guide</a>. For a more data science slant, <a href="http://datascienceatthecommandline.com/">Data Science at the Command Line</a> is a great read.</p>
+
+<h2 id="git-and-github">Git and Github</h2>
+
+<p>Ever find yourself wishing you could go back in time and see what you or a team mate did the day before, or week before? Ever made a change to code that you wish you could revert later? Ever find yourself making backup folders before making changes, or sending source code or data to other people using email or Dropbox? If so, you need look into version control control system.</p>
+
+<p>Probably the best and most widely is VCS software in existence is git. Github ( and Gitlab) has also become a widely used platform for hosting git repositories and managing open source or private projects.</p>
+
+<p>Git is a distributed version control system, meaning that you don&rsquo;t need a central server running somewhere to orchestrate versioning and change management. Projects are organized around <em>repositories</em> and each collaborator can work on a separate copy of the repository (and it&rsquo;s history). Changes to repositories (or repos for short), are made through commits, and each commit is recorded in the history of the repo.</p>
+
+<p>Experimental changes can be done in separate branches, that can be peeled off from the main <code>master</code> branch and later be merged back.</p>
+
+<p>Github is a platform that allow you to host git repositories and collaborate with others on projects. It has become the de-facto standard for hosting open source projects, and adds the ability to easily fork other people&rsquo;s repositories send Pull Requests, ie commits you&rsquo;ve made to your own fork that you want to have merged back in to the original repository.</p>
+
+<p>If you wanted to get started with git and Github, <a href="https://learnxinyminutes.com/docs/git/">this tutorial</a> will teach you the basics quickly, while <a href="https://www.learnenough.com/git-tutorial">this</a> is a great, more in depth guide.</p>
+
+<h2 id="make">Make</h2>
+
+<p>GNU make is a simple, yet surprisingly powerful command-line tool that let&rsquo;s you automate tasks and specify the dependancies between them, by creating &lsquo;recipes&rsquo; that can be executed to run a sequence of steps that will create a final output.</p>
+
+<p>Make uses simple file called <code>Makefile</code> that let&rsquo;s you define so called targets (task outputs) and a dependency tree (or more technically, a directed acyclic graph of dependancies) of input files and commands that can be used to construct the targets. The power comes from being able to express the dependancies in a simple, declarative language, which make then uses to figure out the exact sequence of steps needed to run whenever anything changes.</p>
+
+<p>Make is also language-agnostic, anything you can do on the command line can be automated and it comes standard with almost any unix or linux system.</p>
+
+<p>If you wanted to get started with Make, especially for data science, <a href="http://blog.kaggle.com/2012/10/15/make-for-data-scientists/">this</a> is a great place to start.</p>
+
+<h2 id="sql">SQL</h2>
+
+<p>SQL has been around for a very long time, and it&rsquo;s arguably still very much the lingua-franca when it comes to extracting, searching and transforming data. A lot of web applications use SQL as it&rsquo;s transactional database. Many large statistical data collection projects will store data in a SQL database as well.</p>
+
+<p>As a data scientist, you might be using not only traditional, transactional SQL databases such PostgreSQL, MySQL or SQLite, but over the last few years many analytics-focused&rsquo; databases have emerged, such as Amazon Redshift, Google BigQuery or Snowflake.</p>
+
+<p>Many Big Data platforms also offer a higher level SQL interface, such as Apache Spark with SparkSQL, Pig and Hive on Hadoop, Presto, Amazon Athena, etc.</p>
+
+<p>Learning SQL is one skill that you could probably transfer to many roles throughout your career, and will unlock a wealth of data.</p>
+
+<h2 id="markdown">Markdown</h2>
+
+<p>Being a data scientist doesn&rsquo;t mean just discovering insights from data, but also communicating your results to peers and colleagues. This often means not just keeping track of what data you use and which methods you used to analyse the data, but also capturing and documenting what you learn. Markdown is a simple, but surprisingly flexible and useful way of producing documentation and presenting it to others. It&rsquo;s an easy to learn, very readable and widely supported markup language that mostly stays out of your way and just let&rsquo;s you do the job quickly and effortlessly.</p>
+
+<p>Since it&rsquo;s all text it&rsquo;s easy to use anywhere, without having to deal with heavyweight binary formats. Markdown documents can also easily be extended to do anything almost you can do in a webpage, by using inline HTML.</p>
+
+<p>The best part of Markdown is that&rsquo;s it&rsquo;s concise, easy to read and write, and easy to learn. You can basically learn all of it in an hour or so, here is a <a href="http://www.markdowntutorial.com/">great place</a> to start.</p>
+
+<h2 id="an-example">An example</h2>
+
+<p>The best thing about this list of tools is how well they work together. The easiest way to illustrate this is with an example project.</p>
+
+<p>I created a toy analysis to show how you could go about using most of the tools I&rsquo;ve listed in this blog post. You can check it out over <a href="https://github.com/michael-erasmus/crypto-prices">here</a>.</p>
+
+<p>To get a better idea of how it all fits together, you can start with the <a href="https://github.com/michael-erasmus/crypto-prices/blob/master/README.md">README</a> markdown file.</p>
+
+<p>You&rsquo;ll see that I make heavy use of <a href="https://github.com/michael-erasmus/crypto-prices/blob/master/Makefile">Make</a> <a href="https://github.com/michael-erasmus/crypto-prices/blob/master/data/Makefile">to automate</a> the analysis and set up dependencies.</p>
+
+<p>The Makefiles in turn lean on bash to do some inline data collection and data processing, but I also <a href="https://github.com/michael-erasmus/crypto-prices/blob/master/transform.py">make use of Python (and Pandas)</a> to some of the more involved data processing.</p>
+
+<p>The Python code together with the <a href="https://github.com/michael-erasmus/crypto-prices/blob/master/notebooks/Data%20Analysis.ipynb">main analysis Notebook</a> runs within a <a href="https://github.com/michael-erasmus/crypto-prices/blob/master/Dockerfile">Docker container</a>.</p>
+
+<p>Finally, I can use git and github to share my analysis and anyone can step through my <a href="https://github.com/michael-erasmus/crypto-prices/commits/master">commit history</a> to see how the project was put together.</p>
+
+<h2 id="now-over-to-you">Now over to you!</h2>
+
+<p>And that concludes my super opinionated list of essential data science tools. This is by no means an exhaustive list of tools that you&rsquo;ll find useful for doing data science, and might be quite different from your own list, but over time these tools have served me very well. My hope is that perhaps a couple of these suggestions might serve you well too.</p>
+
+<p>Where do you agree or disagree with me? What tools are on your essentials list? I would love to know!</p>
+
+      </article>
+
+      <ul class="pager blog-pager">
+        
+          <li class="previous">
+            <a href="http://michaelerasm.us/post/window-functions-in-redshift/" data-toggle="tooltip" data-placement="top" title="Window Functions in Redshift">&larr; Previous Post</a>
+          </li>
+        
+        
+      </ul>
+
+      
+        
+          <div class="disqus-comments">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'michaelerasm-us';
+    var disqus_identifier = 'http:\/\/michaelerasm.us\/post\/my-essential-data-science-tools\/';
+    var disqus_title = 'My essential data science tools';
+    var disqus_url = 'http:\/\/michaelerasm.us\/post\/my-essential-data-science-tools\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+          </div>
+        
+      
+
+    </div>
+  </div>
+</div>
+
+      
+    </div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+          
+          
+          <li>
+            <a href="https://github.com/michael-erasmus" title="GitHub">
+              <span class="fa-stack fa-lg">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li>
+            <a href="https://twitter.com/michael_erasmus" title="Twitter">
+              <span class="fa-stack fa-lg">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          Michael Erasmus
+          &nbsp;&bull;&nbsp;
+          2017
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="http://michaelerasm.us/">michaelerasm.us</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.21</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js" integrity="sha384-/y1Nn9+QQAipbNQWU65krzJralCnuOasHncUFXGkdwntGeSvQicrYkiUBwsgUqc1" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/contrib/auto-render.min.js" integrity="sha384-dq1/gEHSxPZQ7DdrM82ID4YVol9BYyU7GbWlIwnwyPzotpoc57wDw/guX8EaYGPx" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="http://michaelerasm.us//js/main.js"></script>
+<script src="http://michaelerasm.us//js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> renderMathInElement(document.body); </script>
+
+
+
+
+  </body>
+</html>

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>http://michaelerasm.us/post/my-essential-data-science-tools/</loc>
+    <lastmod>2017-05-23T14:55:43-07:00</lastmod>
+  </url>
   
   <url>
     <loc>http://michaelerasm.us/post/window-functions-in-redshift/</loc>
@@ -26,19 +32,29 @@
   </url>
   
   <url>
+    <loc>http://michaelerasm.us/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://michaelerasm.us/page/</loc>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://michaelerasm.us/post/</loc>
-    <lastmod>2017-04-12T17:00:30-07:00</lastmod>
+    <lastmod>2017-05-23T14:55:43-07:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://michaelerasm.us/tags/</loc>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://michaelerasm.us/</loc>
-    <lastmod>2017-04-12T17:00:30-07:00</lastmod>
+    <lastmod>2017-05-23T14:55:43-07:00</lastmod>
     <priority>0</priority>
   </url>
   
